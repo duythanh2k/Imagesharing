@@ -10,10 +10,10 @@ app.use(
 );
 
 //Use routes
-require('./routes/user.route')(app);
-require('./routes/post.route')(app);
-require('./routes/image.route')(app);
-require('./routes/comment.route')(app);
+// require('./routes/user.route')(app);
+// require('./routes/post.route')(app);
+// require('./routes/image.route')(app);
+// require('./routes/comment.route')(app);
 
 //CONFIGURE PATH
 const PORT = process.env.PORT || 3000;
