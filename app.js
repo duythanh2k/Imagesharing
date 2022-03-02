@@ -9,9 +9,11 @@ app.use(
     })
 );
 
-// app.get('/', (req, res) => {
-//     res.json({greeting: "Hello!"});
-// });
+//Use routes
+require('./routes/user.route')(app);
+require('./routes/post.route')(app);
+require('./routes/image.route')(app);
+require('./routes/comment.route')(app);
 
 //CONFIGURE PATH
 const PORT = process.env.PORT || 3000;
