@@ -91,7 +91,7 @@ exports.likeComment = async (req, res) => {
           message: "Liked!",
           data: null,
         });
-      } else {
+      } else { // Call API again -> another PK generate and it'll return 0 -> Unlike
         return res.json({
           status: "Success",
           code: null,

@@ -55,7 +55,7 @@ exports.likeComment = async (user_id, comment_id) => {
       comment_id,
     });
     return like;
-  } catch (err) {
+  } catch (err) { // Call API again with the same user_id and comment_id will cause error
     // Destroy like when call twice
     let like = await CommentReact.destroy({
       where: {
