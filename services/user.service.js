@@ -1,8 +1,9 @@
-const User   = require("../models/user.model");
-const Posts  = require("../models/post.model");
+const User = require("../models/user.model");
+const Posts = require("../models/post.model");
 const Images = require("../models/image.model");
-const db     = require("../models/db");
-const jwt    = require("jsonwebtoken");
+const Follower = require("../models/follower.model");
+const db = require("../models/db");
+const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const bcrypt = require("bcryptjs");
 const { QueryTypes } = require("sequelize");
@@ -230,5 +231,29 @@ exports.deleteImage = async (id) => {
     });
   } catch (err) {
     throw err;
+  }
+};
+
+exports.getAllFollowing = async (user_id, requests) => {
+  try {
+    // if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    //   let err = {
+    //     code: "INVALID_INPUT",
+    //     message: "Query params is invalid",
+    //   };
+    //   return err;
+    // }
+    // Get all the user that current user is following
+    // by compare all "follower_id" of 'user following list' with current userId
+    let following = await Follower.findAll({
+      where: {
+        follower_id: user_id,
+      },
+      offset: Number(requests.offset),
+      limit: Number(requests.limit),
+    });
+    return following;
+  } catch (err) {
+    return err;
   }
 };

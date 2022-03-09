@@ -173,3 +173,24 @@ exports.deleteImage = async (req, res, next) => {
     });
   }
 };
+
+exports.getAllFollowing = async (req, res) => {
+  try {
+    let userId = req.idUser;
+    let requests = req.query;
+    let following = await userService.getAllFollowing(userId, requests);
+    return res.json({
+      status: "Success",
+      code: null,
+      message: null,
+      data: following,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: "Error",
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+}

@@ -5,28 +5,21 @@ const CommentReact = require("../models/comment_react.model");
 // Get all comments of a post sort by timestamp
 exports.getAllCmtDesc = async (id, sort) => {
   try {
-    // First we gonna find a post by id that we wanna see it's comments
-    let post = await Post.findOne({ where: { id: id } });
     const ordered = [];
 
-    if (!post) {
-      // Condition where that post does not found
-      return null;
-    } else {
-      // query for sort comment by descend timestamp
-      if (sort === "-created") {
-        ordered.push(["created_at", "DESC"]);
-      }
-      // find all comments of current post and sort comments by lateset timestamp
-      let comment = await Comment.findAll({
-        where: {
-          post_id: post.id,
-        },
-        // Order condition
-        order: ordered,
-      });
-      return comment;
+    // query for sort comment by descend timestamp
+    if (sort === "-created") {
+      ordered.push(["created_at", "DESC"]);
     }
+    // find all comments of current post and sort comments by lateset timestamp
+    let comment = await Comment.findAll({
+      where: {
+        post_id: id,
+      },
+      // Order condition
+      order: ordered,
+    });
+    return comment;
   } catch (err) {
     throw err;
   }

@@ -20,6 +20,6 @@ const follower = db.define(
   }
 );
 
-follower.sync({ force: false });
+// follower.sync({ force: false });
 
 module.exports = follower;
