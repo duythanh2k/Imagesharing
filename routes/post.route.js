@@ -7,6 +7,5 @@ const posts   = require("../controllers/post.controller");
 router.get("/:id/comments", auth.isAuth, posts.getAllCmtDesc);
 router.delete("/:id/comments/:comment_id", auth.isAuth, posts.deleteComment);
 router.post("/:id/comments/:comment_id/like", auth.isAuth, posts.likeComment);
-// router.delete("/:id/comments/:comment_id/like", auth.isAuth, posts.unlikeComment);
 
 module.exports = router;

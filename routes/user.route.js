@@ -11,5 +11,7 @@ router.put('/users/profile', authenMiddleware.isAuth, userController.updateProfi
 router.get('/users/images', authenMiddleware.isAuth, userController.getAllImageUser);
 router.put('/users/images/:id', authenMiddleware.isAuth, userController.updateCapImage);
 router.delete('/users/images/:id', authenMiddleware.isAuth, userController.deleteImage);
+//Follow
+router.get('/users/following', authenMiddleware.isAuth, userController.getFollowing);
 
 module.exports = router
