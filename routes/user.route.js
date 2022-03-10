@@ -13,6 +13,6 @@ router.put('/users/images/:id', authenMiddleware.isAuth, userController.updateCa
 router.delete('/users/images/:id', authenMiddleware.isAuth, userController.deleteImage);
 //Follow
 router.get('/users/following', authenMiddleware.isAuth, userController.getAllFollowing);
-// router.post('/users/:id/follow', authenMiddleware.isAuth, userController.follow);
+router.post('/users/:id/follow', authenMiddleware.isAuth, userController.follow);
 
 module.exports = router

@@ -195,3 +195,21 @@ exports.getAllFollowing = async (req, res) => {
   }
 }
 
+exports.follow = async (req, res) => {
+  try {
+    let results = await userService.follow(req.idUser, req.params.id);
+    return res.json({
+      status: "Success",
+      code: null,
+      message: results,
+      data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: "Error",
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+}

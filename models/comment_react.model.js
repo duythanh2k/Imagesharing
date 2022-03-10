@@ -66,11 +66,6 @@ const CommentReact = db.define(
   }
 );
 
-Comment.hasMany(CommentReact, { foreignKey: "comment_id" });
-CommentReact.belongsTo(Comment, { foreignKey: "user_id" });
-User.hasMany(CommentReact, { foreignKey: "user_id" });
-CommentReact.belongsTo(User);
-
 // CommentReact.sync({ force: false });
 
 module.exports = CommentReact;

@@ -237,11 +237,8 @@ exports.deleteImage = async (id) => {
 exports.getAllFollowing = async (user_id, requests) => {
   try {
     if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
-      let err = {
-        code: "INVALID_INPUT",
-        message: "Query params is invalid",
-      };
-      return err;
+      requests.offset = 0;
+      requests.limit = 2;
     }
     // Get all the user that current user is following
     // by compare all "follower_id" of 'user following list' with current userId
@@ -258,7 +255,35 @@ exports.getAllFollowing = async (user_id, requests) => {
   }
 };
 
-
+exports.follow = async (follower_id, followed_id) => {
+  try {
+    let isUserExists = await checkUserExistence(followed_id);
+    let message;
+    if (!isUserExists) {
+      // Check if there is an user in database
+      message = "User does not exist!";
+      return null;
+    } else {
+      message = "Followed!";
+      // Create new follow
+      await Follower.create({
+        follower_id,
+        followed_id
+      });
+      return message;
+    }
+  } catch (err) { // Call API again with the same user_id and followed_id will cause error
+    let message = "Unfollowed!";
+    // Destroy like when call twice
+    await Follower.destroy({
+      where: {
+        follower_id,
+        followed_id
+      }
+    });
+    return message;
+  }
+}
 
 
 // Functions check existence
