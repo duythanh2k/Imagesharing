@@ -2,27 +2,17 @@ const postService = require("../services/post.service");
 require("dotenv").config;
 
 exports.getAllCmtDesc = async (req, res) => {
-  const postId = req.params.id;
-  let comment;
-  let message;
   try {
-    //Check existence of a post
-    const isPostExists = await postService.checkPostExistence(postId);
-    if (!isPostExists) {
-      message = "Post doesn't exist!"
-    } else {
-      comment = await postService.getAllCmtDesc(
-        req.params.id,
-        req.query.sort
-      );
-      message = null;
-    }
+    let results = await postService.getAllCmtDesc(
+      req.params.id,
+      req.query.sort
+    );
     
     return res.json({
       status: "Success",
       code: null,
-      message: message,
-      data: comment,
+      message: results.message,
+      data: results.comment,
     });
   } catch (err) {
     res.status(400).json({
@@ -38,25 +28,15 @@ exports.deleteComment = async (req, res) => {
   const postId = req.params.id;
   const commentId = req.params.comment_id;
   try {
-    //Check condition where both comment and post are exist
-    const isPostExists = await postService.checkPostExistence(postId);
-    const isCommentExists = await postService.checkCommentExistence(commentId);
-    let message;
-    if (!isPostExists) {
-      message = "Post doesn't exist!"
-    } else {
-      if (!isCommentExists) {
-        message = "Comment doesn't exist!"
-      } else {
-        await postService.deleteComment(postId, commentId);
-        message = null;
-      }
-    }
+    let results = await postService.deleteComment(
+      req.params.id, 
+      req.params.comment_id
+    );
 
     return res.json({
       status: "Success",
       code: null,
-      message: message,
+      message: results,
       data: null,
     });
   } catch (err) {
@@ -71,35 +51,13 @@ exports.deleteComment = async (req, res) => {
 
 exports.likeComment = async (req, res) => {
   try {
-    let commentId = req.params.comment_id;
-    let userId = req.idUser;
-    //Check condition where comment exists
-    const isCommentExists = await postService.checkCommentExistence(commentId);
-    if (!isCommentExists) {
-      return res.json({
-        status: "Error",
-        code: "NOT_EXISTS",
-        message: "Comment does not exist!",
-        data: null,
-      });
-    } else {
-      let like = await postService.likeComment(userId, commentId);
-      if (like != 1) {
-        return res.json({
-          status: "Success",
-          code: null,
-          message: "Liked!",
-          data: null,
-        });
-      } else { // Call API again -> another PK generate and it'll return 0 -> Unlike
-        return res.json({
-          status: "Success",
-          code: null,
-          message: "Unliked!",
-          data: null,
-        });
-      }
-    }
+    let results = await postService.likeComment(req.idUser, req.params.comment_id);
+    return res.json({
+      status: "Success",
+      code: null,
+      message: results,
+      data: null,
+    });
   } catch (err) {
     res.status(400).json({
       status: "Error",
