@@ -174,6 +174,7 @@ exports.deleteImage = async (req, res, next) => {
   }
 };
 
+// Get all users that current user has followed
 exports.getAllFollowing = async (req, res) => {
   try {
     let userId = req.idUser;
@@ -195,6 +196,7 @@ exports.getAllFollowing = async (req, res) => {
   }
 }
 
+// Follow/Unfollow other users
 exports.follow = async (req, res) => {
   try {
     let results = await userService.follow(req.idUser, req.params.id);
@@ -203,6 +205,27 @@ exports.follow = async (req, res) => {
       code: null,
       message: results,
       data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: "Error",
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+}
+
+// Search for other users
+exports.searchUsers = async (req, res) => {
+  try {
+    let requests = req.query;
+    let results = await userService.searchUsers(requests);
+    return res.json({
+      status: "Success",
+      code: null,
+      message: null,
+      data: results,
     });
   } catch (err) {
     res.status(400).json({

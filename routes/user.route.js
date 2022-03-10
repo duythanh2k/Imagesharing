@@ -14,5 +14,6 @@ router.delete('/users/images/:id', authenMiddleware.isAuth, userController.delet
 //Follow
 router.get('/users/following', authenMiddleware.isAuth, userController.getAllFollowing);
 router.post('/users/:id/follow', authenMiddleware.isAuth, userController.follow);
+router.get('/users', authenMiddleware.isAuth, userController.searchUsers);
 
 module.exports = router

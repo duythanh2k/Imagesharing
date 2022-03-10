@@ -6,7 +6,7 @@ const db = require("../models/db");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const bcrypt = require("bcryptjs");
-const { QueryTypes } = require("sequelize");
+const { QueryTypes, Op } = require("sequelize");
 
 //Kiểm tra chuỗi nhập vào có rỗng hay không
 const isEmpty = function (value) {
@@ -234,6 +234,7 @@ exports.deleteImage = async (id) => {
   }
 };
 
+// Get all users that the current user has followed
 exports.getAllFollowing = async (user_id, requests) => {
   try {
     if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
@@ -255,22 +256,29 @@ exports.getAllFollowing = async (user_id, requests) => {
   }
 };
 
+// Follow/Unfollow other users
 exports.follow = async (follower_id, followed_id) => {
   try {
     let isUserExists = await checkUserExistence(followed_id);
     let message;
-    if (!isUserExists) {
-      // Check if there is an user in database
-      message = "User does not exist!";
-      return null;
-    } else {
-      message = "Followed!";
-      // Create new follow
-      await Follower.create({
-        follower_id,
-        followed_id
-      });
+    if (Number(followed_id) === Number(follower_id)) {
+      // Condition of not following self
+      message = "Cannot follow self!";
       return message;
+    } else {
+      if (!isUserExists) {
+        // Check if there is an user in database
+        message = "User does not exist!";
+        return message;
+      } else {
+        message = "Followed!";
+        // Create new follow
+        await Follower.create({
+          follower_id,
+          followed_id
+        });
+        return message;
+      }
     }
   } catch (err) { // Call API again with the same user_id and followed_id will cause error
     let message = "Unfollowed!";
@@ -282,6 +290,38 @@ exports.follow = async (follower_id, followed_id) => {
       }
     });
     return message;
+  }
+}
+
+// Search for other users
+exports.searchUsers = async (requests) => {
+  try {
+    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+      requests.offset = 0;
+      requests.limit = 2;
+    }
+    let users = User.findAll({
+      where: { // OR operator by require ( `const {Op} = require('sequelize') )
+        [Op.or]: [
+          {
+            first_name: {
+              [Op.like]: '%' + requests.name + '%'
+            }
+          },
+          {
+            last_name: {
+              [Op.like]: '%' + requests.name + '%'
+            }
+          }
+        ]
+      },
+      offset: Number(requests.offset),
+      limit: Number(requests.limit)
+    });
+
+    return users;
+  } catch (err) {
+    return err;
   }
 }
 
