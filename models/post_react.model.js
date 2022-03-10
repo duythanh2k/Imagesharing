@@ -1,10 +1,10 @@
-const db   = require("../util/db");
+const db = require("../util/db");
 const User = require("./user.model");
 const Post = require("./post.model");
 const { Sequelize, DataTypes, Deferrable } = require("sequelize");
 
-const Comment = db.define(
-  "Comments",
+const PostReact = db.define(
+  "PostReacts",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -14,13 +14,6 @@ const Comment = db.define(
     text: {
       type: DataTypes.TEXT,
       allowNull: false,
-    },
-    created_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    parent_cmt_id: {
-      type: DataTypes.INTEGER,
     },
     user_id: {
       type: DataTypes.INTEGER,
@@ -44,11 +37,11 @@ const Comment = db.define(
   {
     index: [
       {
-        name: "index_cmt1",
+        name: "index_postr1",
         fields: ["user_id"],
       },
       {
-        name: "index_cmt2",
+        name: "index_postr2",
         fields: ["post_id"],
       },
     ],
@@ -57,11 +50,11 @@ const Comment = db.define(
   }
 );
 
-Post.hasMany(Comment, { foreignKey: "post_id" });
-Comment.belongsTo(Post);
-User.hasMany(Comment, { foreignKey: "user_id" });
-Comment.belongsTo(User);
+Post.hasMany(PostReact, { foreignKey: "post_id" });
+PostReact.belongsTo(Post);
+User.hasMany(PostReact, { foreignKey: "user_id" });
+PostReact.belongsTo(User);
 
-// Comment.sync({ force: false });
+// PostReact.sync({ force: false });
 
-module.exports = Comment;
+module.exports = PostReact;

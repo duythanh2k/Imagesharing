@@ -1,8 +1,12 @@
-// module.exports = app => {
-//     var router  = require('express').Router();
-//     const users = require('../controllers/user.controller');
+const express =require('express');
+const router = express.Router();
 
-//     //router.get("/", users.getAllUsers);
+const authenMiddleware = require('../Middleware/authen.middleware')
+const userController   = require('../controllers/user.controller');
+router.post('/signup', userController.signUp);
+router.post('/signin', userController.signIn);
+router.get('/users/profile', authenMiddleware.isAuth, userController.profile);
+router.put('/users/profile', authenMiddleware.isAuth, userController.updateProfile);
 
-//     app.use('/users', router);
-// }
+
+module.exports = router
