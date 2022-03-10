@@ -236,13 +236,13 @@ exports.deleteImage = async (id) => {
 
 exports.getAllFollowing = async (user_id, requests) => {
   try {
-    // if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
-    //   let err = {
-    //     code: "INVALID_INPUT",
-    //     message: "Query params is invalid",
-    //   };
-    //   return err;
-    // }
+    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+      let err = {
+        code: "INVALID_INPUT",
+        message: "Query params is invalid",
+      };
+      return err;
+    }
     // Get all the user that current user is following
     // by compare all "follower_id" of 'user following list' with current userId
     let following = await Follower.findAll({
@@ -255,5 +255,21 @@ exports.getAllFollowing = async (user_id, requests) => {
     return following;
   } catch (err) {
     return err;
+  }
+};
+
+
+
+
+// Functions check existence
+const checkUserExistence = async (id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(id)) {
+      const user = await User.findByPk(id);
+      return user;
+    }
+  } catch (error) {
+    return error;
   }
 };
