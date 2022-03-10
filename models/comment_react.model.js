@@ -1,4 +1,4 @@
-const db      = require("./db");
+const db      = require("../util/db");
 const User    = require("./user.model");
 const Comment = require("./comment.model");
 const { Sequelize, DataTypes, Deferrable } = require("sequelize");

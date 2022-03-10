@@ -1,7 +1,7 @@
 const User   = require("../models/user.model");
 const Posts  = require("../models/post.model");
 const Images = require("../models/image.model");
-const db     = require("../models/db");
+const db     = require("../util/db");
 const jwt    = require("jsonwebtoken");
 const moment = require("moment");
 const bcrypt = require("bcryptjs");
@@ -45,6 +45,7 @@ exports.signUp = async function (user) {
   //Kiểm tra dữ liệu nhập vào có trống hay không
   if (
     isEmpty(user.email) ||
+    isEmpty(user.password)||
     isEmpty(user.first_name) ||
     isEmpty(user.last_name) ||
     isEmpty(user.dob)
@@ -80,6 +81,8 @@ exports.signUp = async function (user) {
     };
     throw err;
   }
+  const hashPass = bcrypt.hashSync(user.password, 10);
+  user.password=hashPass;
   var result = await User.create(user);
   return result;
 };

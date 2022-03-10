@@ -1,24 +1,14 @@
 const userService = require("../services/user.service");
 const bcrypt      = require("bcryptjs");
-const User        = require("../models/user.model");
-require("dotenv").config();
 
 //Đăng ký
 exports.signUp = async function (req, res, next) {
   try {
-    if (!req.body.password || 0 === req.body.password.length) {
-      let err = {
-        code: "INVALID_INPUT",
-        message: "Input data is invalid",
-      };
-      throw err;
-    }
-    const hashPass = bcrypt.hashSync(req.body.password, 10);
     const user = {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       email: req.body.email,
-      password: hashPass,
+      password: req.body.password,
       dob: req.body.dob,
       gender: req.body.gender,
       avatar: req.body.avatar,
