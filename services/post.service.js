@@ -70,16 +70,15 @@ exports.deleteComment = async (post_id, comment_id) => {
 exports.likeComment = async (user_id, comment_id) => {
   try {
     let isCommentExists = await checkCommentExistence(comment_id);
-    let message, like;
+    let message;
     // Check if there is a comment in database
     if (!isCommentExists) {
       message = "Comment does not exist!";
-      like = null;
       return message;
     } else {
       message = "Liked!";
       // Create a new like
-      like = await CommentReact.create({
+      await CommentReact.create({
         user_id,
         comment_id,
       });
@@ -88,7 +87,7 @@ exports.likeComment = async (user_id, comment_id) => {
   } catch (err) { // Call API again with the same user_id and comment_id will cause error
     let message = "Unliked!";
     // Destroy like when call twice
-    let like = await CommentReact.destroy({
+    await CommentReact.destroy({
       where: {
         user_id,
         comment_id,
