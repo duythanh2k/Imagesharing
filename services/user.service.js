@@ -135,9 +135,9 @@ exports.generateToken = async (user, secretSignature) => {
 };
 
 //Lấy thông tin user
-exports.profile = async (email) => {
+exports.profile = async (idUser) => {
   try {
-    let result = await User.findOne({ where: { email: email } });
+    let result = await User.findOne({ where: { id: idUser } });
     return (data = {
       first_name: result.first_name,
       last_name: result.last_name,
@@ -151,7 +151,7 @@ exports.profile = async (email) => {
 };
 
 //Cập nhật thông tin user
-exports.updateProfile = async (email, user) => {
+exports.updateProfile = async (idUser, user) => {
   try {
     //Kiểm tra định dạng của ngày tháng nếu có
     if (!isEmpty(user.dob) && !isDate(user.dob)) {
@@ -163,109 +163,10 @@ exports.updateProfile = async (email, user) => {
     }
     await User.update(user, {
       where: {
-        email: email,
+        id: idUser,
       },
     });
-  } catch (err) {
-    throw err;
-  }
-};
-
-//Lấy tất cả các ảnh của user login
-exports.getAllImageUser = async (idUser, requests) => {
-  try {
-    //Kiểm tra dữ liệu nhập vào có trống hay không
-    if (
-      isEmpty(requests.limit) ||
-      isEmpty(requests.offset) ||
-      isEmpty(requests.sort_by) ||
-      isEmpty(requests.order_by)
-    ) {
-      let err = {
-        code: "INVALID_INPUT",
-        message: "Query params is invalid",
-      };
-      throw err;
-    }
-    // let result=await Images.findAll({
-    //     attributes:['id','path','caption',`Post.created_at`],
-    //     include:
-    //     [{  model:Posts,
-    //         required:true,
-    //         attributes:['created_at'],
-    //         where:{
-    //             user_id:user.id,
-    //         },
-    //         order:[
-    //             ['created_at','DESC']
-    //         ]
-    //     }],
-    //     limit: Number(requests.limit),
-    //     offset: Number(requests.offset)
-    //      });
-    let result = await db.query(
-      `select images.path,images.caption 
-                        from posts INNER JOIN images ON posts.id=images.post_id
-                        Where posts.user_id=${idUser}
-                        order by ${requests.sort_by} ${requests.order_by}
-                        limit ${requests.limit}
-                        offset ${requests.offset}`,
-      { plain: false, type: QueryTypes.SELECT }
-    );
-    return result;
-  } catch (err) {
-    throw err;
-  }
-};
-
-//Cập nhật caption mới cho image
-exports.updateCapImage = async (id, newCaption) => {
-  try {
-    //Kiểm tra image có tồn tại hay không
-    let check = await Images.findOne({ where: { id : id } });
-    if(!check){
-      let err = {
-        code: "NOT_FOUND",
-        message: "Can not found your images",
-      };
-      throw err;
-    }
-    // Kiểm tra caption có undefined hay không
-    if (newCaption===undefined){
-      let err = {
-        code: "INVALID_INPUT",
-        message: "Input data is invalid",
-      };
-      throw err;
-    }
-    await Images.update(
-      {
-        caption: newCaption,
-      },
-      {
-        where: { id: id },
-      }
-    );
-  } catch (err) {
-    throw err;
-  }
-};
-
-//Xóa image
-exports.deleteImage = async (id) => {
-  try {
-    //Kiểm tra image có tồn tại hay không
-    let check = await Images.findOne({ where: { id : id } });
-    if(!check){
-      let err = {
-        code: "NOT_FOUND",
-        message: "Can not found your images",
-      };
-      throw err;
-    }
-    await Images.destroy({
-      where: { id: id },
-    });
+    return;
   } catch (err) {
     throw err;
   }

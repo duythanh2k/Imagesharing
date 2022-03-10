@@ -11,11 +11,12 @@ app.use(
 );
 //Routes configuration
 const users = require("./routes/user.route");
-const posts = require("./routes/post.route");
+const posts=require('./routes/post.route')
 
 //Using route
+app.use("/posts", posts);
 app.use("/", users);
-// app.use("/posts", posts);
+
 
 //PORT set up
 const PORT = process.env.PORT || 3000;

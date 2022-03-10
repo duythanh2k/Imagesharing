@@ -1,5 +1,4 @@
-const userService = require("../services/user.service");
-const bcrypt      = require("bcryptjs");
+const userService = require("../services/user.service");;
 
 //Đăng ký
 exports.signUp = async function (req, res, next) {
@@ -60,7 +59,7 @@ exports.signIn = async (req, res) => {
 //Xem thông tin cá nhân
 exports.profile = async (req, res, next) => {
   try {
-    let result = await userService.profile(req.email);
+    let result = await userService.profile(req.idUser);
     return res.json({
       status: "Success",
       code: null,
@@ -80,53 +79,9 @@ exports.profile = async (req, res, next) => {
 //Cập nhập thông tin cá nhân
 exports.updateProfile = async (req, res, next) => {
   try {
-    let email = req.email;
-    let user = req.body;
-    await userService.updateProfile(email, user);
-    return res.json({
-      status: "Success",
-      code: null,
-      message: null,
-      data: null,
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "Error",
-      code: err.code,
-      message: err.message,
-      data: null,
-    });
-  }
-};
-
-//Lấy tất cả các ảnh của cá nhân
-exports.getAllImageUser = async (req, res, next) => {
-  try {
     let idUser = req.idUser;
-    let requests = req.query;
-    let result = await userService.getAllImageUser(idUser, requests);
-    return res.json({
-      status: "Success",
-      code: null,
-      message: null,
-      data: result,
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "Error",
-      code: err.code,
-      message: err.message,
-      data: null,
-    });
-  }
-};
-
-//Cập nhật caption của ảnh
-exports.updateCapImage = async (req, res, next) => {
-  try {
-    let id = req.params.id;
-    let newcapIamge = req.body.caption;
-    await userService.updateCapImage(id, newcapIamge);
+    let user = req.body;
+    await userService.updateProfile(idUser, user);
     return res.json({
       status: "Success",
       code: null,
@@ -143,23 +98,67 @@ exports.updateCapImage = async (req, res, next) => {
   }
 };
 
-//Xóa ảnh
-exports.deleteImage = async (req, res, next) => {
-  try {
-    let id = req.params.id;
-    await userService.deleteImage(id);
-    return res.json({
-      status: "Success",
-      code: null,
-      message: null,
-      data: null,
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "Error",
-      code: err.code,
-      message: err.message,
-      data: null,
-    });
-  }
-};
+// //Lấy tất cả các ảnh của cá nhân
+// exports.getAllImageUser = async (req, res, next) => {
+//   try {
+//     let idUser = req.idUser;
+//     let requests = req.query;
+//     let result = await userService.getAllImageUser(idUser, requests);
+//     return res.json({
+//       status: "Success",
+//       code: null,
+//       message: null,
+//       data: result,
+//     });
+//   } catch (err) {
+//     res.status(400).json({
+//       status: "Error",
+//       code: err.code,
+//       message: err.message,
+//       data: null,
+//     });
+//   }
+// };
+
+// //Cập nhật caption của ảnh
+// exports.updateCapImage = async (req, res, next) => {
+//   try {
+//     let id = req.params.id;
+//     let newcapIamge = req.body.caption;
+//     await userService.updateCapImage(id, newcapIamge);
+//     return res.json({
+//       status: "Success",
+//       code: null,
+//       message: null,
+//       data: null,
+//     });
+//   } catch (err) {
+//     res.status(400).json({
+//       status: "Error",
+//       code: err.code,
+//       message: err.message,
+//       data: null,
+//     });
+//   }
+// };
+
+// //Xóa ảnh
+// exports.deleteImage = async (req, res, next) => {
+//   try {
+//     let id = req.params.id;
+//     await userService.deleteImage(id);
+//     return res.json({
+//       status: "Success",
+//       code: null,
+//       message: null,
+//       data: null,
+//     });
+//   } catch (err) {
+//     res.status(400).json({
+//       status: "Error",
+//       code: err.code,
+//       message: err.message,
+//       data: null,
+//     });
+//   }
+// };
