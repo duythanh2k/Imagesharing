@@ -159,10 +159,10 @@ exports.getAllImageUser = async (idUser, requests) => {
         //Kiểm tra ảnh có phải của tk đang login
       if(checkOwner.length===0){
         let err = {
-            code: "NOT_PERMISSON",
-            message: "You don't have permission",
-          };
-          throw err;
+          code: "NOT_PERMISSON",
+          message: "You don't have permission",
+        };
+        throw err;
       }  
       await Images.destroy({
         where: { id: idImage },
@@ -178,7 +178,6 @@ exports.getAllImageUser = async (idUser, requests) => {
 exports.getAllCmtDesc = async (id, requests) => {
   try {
     const ordered = [];
-    let message, comment;
     // query for sort comment by descend timestamp
     if (requests.sort === "-created") {
       ordered.push(["created_at", "DESC"]);
@@ -191,13 +190,14 @@ exports.getAllCmtDesc = async (id, requests) => {
     let isPostExists = await checkPostExistence(id);
     // Check if there is a post in database
     if (!isPostExists) {
-      message = "Post does not exist!";
-      comment = null;
-      return { message, comment };
+      let err = {
+        code: "NOT_FOUND",
+        message: "Post not found!",
+      };
+      throw err;
     }
-    message = null;
       // find all comments of current post and sort comments by lateset timestamp
-    comment = await Comment.findAll({
+    let comment = await Comment.findAll({
       where: {
         post_id: id,
       },
@@ -206,7 +206,7 @@ exports.getAllCmtDesc = async (id, requests) => {
       offset: Number(requests.offset),
       limit: Number(requests.limit)
     });
-    return { message, comment };
+    return comment;
   } catch (err) {
     throw err;
   }
@@ -214,7 +214,6 @@ exports.getAllCmtDesc = async (id, requests) => {
 
 // Delete a comments of a post
 exports.deleteComment = async (user_id, post_id, comment_id) => {
-  let message;
   try {
     let isPostExists = await checkPostExistence(post_id);
     let isCommentExists = await checkCommentExistence(comment_id);
@@ -225,25 +224,33 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
     // then Check if the current user own this comment
     // then Find a comment and delete
     if (!isPostExists) {
-      message = "Post does not exist!";
-      return message;
+      let err = {
+        code: "NOT_FOUND",
+        message: "Post not found!",
+      };
+      throw err;
     }
     if (!isCommentExists) {
-      message = "Comment does not exist!";
-      return message;
+      let err = {
+        code: "NOT_FOUND",
+        message: "Comment not found!",
+      };
+      throw err;
     }
     if (!isOwn) {
-      message = "You don't have permission";
-      return message;
+      let err = {
+        code: "NOT_PERMISSON",
+        message: "You don't have permission",
+      };
+      throw err;
     }
-    message = null;
     await Comment.destroy({
       where: {
         id: comment_id,
         post_id: post_id,
       },
     });
-    return message;
+    return;
   } catch (err) {
     throw err;
   }
@@ -256,8 +263,11 @@ exports.likeComment = async (user_id, comment_id) => {
     let message;
     // Check if there is a comment in database
     if (!isCommentExists) {
-      message = "Comment does not exist!";
-      return message;
+      let err = {
+        code: "NOT_FOUND",
+        message: "Comment not found!",
+      };
+      throw err;
     }
     if (alreadyLiked) {
       message = "Unliked!";
