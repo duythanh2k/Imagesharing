@@ -226,13 +226,19 @@ exports.follow = async (follower_id, followed_id) => {
     let alreadyFollowed = await checkFollowerExistence(follower_id, followed_id);
     if (Number(followed_id) === Number(follower_id)) {
       // Condition of not following self
-      message = "Cannot follow self!";
-      return message;
+      let err = {
+        code: "INVALID_INPUT",
+        message: "Can not following self!",
+      };
+      throw err;
     }
     if (!isUserExists) {
       // Check if there is an user in database
-      message = "User does not exist!";
-      return message;
+      let err = {
+        code: "NOT_FOUND",
+        message: "User not found!",
+      };
+      throw err;
     }
     if (alreadyFollowed) {
       let message = "Unfollowed!";
