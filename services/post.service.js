@@ -211,31 +211,37 @@ exports.getAllCmtDesc = async (id, sort) => {
 };
 
 // Delete a comments of a post
-exports.deleteComment = async (post_id, comment_id) => {
+exports.deleteComment = async (user_id, post_id, comment_id) => {
   try {
     let isPostExists = await checkPostExistence(post_id);
     let isCommentExists = await checkCommentExistence(comment_id);
-    let message
+    let isOwn = await checkCommentOwnership(comment_id, user_id);
+    let message;
+    
     // Check if there is a post in database
+    // then Check if there is a comment in database
+    // then Check if the current user own this comment
+    // then Find a comment and delete
     if (!isPostExists) {
       message = "Post does not exist!";
-      return message;
     } else {
-      // Check if there is a comment in database
       if (!isCommentExists) {
         message = "Comment does not exist!";
-        return message;
       } else {
-        // find a comment and delete
-        await Comment.destroy({
-          where: {
-            id: comment_id,
-            post_id: post_id,
-          },
-        });
-        return null;
+        if (!isOwn) {
+          message = "You don't have permission";
+        } else {
+          message = null;
+          await Comment.destroy({
+            where: {
+              id: comment_id,
+              post_id: post_id,
+            },
+          });
+        }
       }
     }
+    return message;
   } catch (err) {
     throw err;
   }
@@ -289,6 +295,22 @@ const checkCommentExistence = async (id) => {
   try {
     if (!isNaN(id)) {
       const comment = await Comment.findByPk(id);
+      return comment;
+    }
+  } catch (error) {
+    return error;
+  }
+};
+const checkCommentOwnership = async (id, user_id) => {
+  //Check condition where this comment belongs to the current user
+  try {
+    if (!isNaN(id) && !isNaN(user_id)) {
+      const comment = await Comment.findOne({
+        where: {
+          id,
+          user_id,
+        }
+      });
       return comment;
     }
   } catch (error) {

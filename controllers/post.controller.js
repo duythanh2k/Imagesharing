@@ -92,12 +92,14 @@ exports.getAllCmtDesc = async (req, res) => {
 };
 
 exports.deleteComment = async (req, res) => {
-  const postId = req.params.id;
-  const commentId = req.params.comment_id;
+  const post_id = req.params.id;
+  const comment_id = req.params.comment_id;
+  const user_id = req.idUser;
   try {
     let results = await postService.deleteComment(
-      req.params.id, 
-      req.params.comment_id
+      user_id,
+      post_id, 
+      comment_id
     );
 
     return res.json({
