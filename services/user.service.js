@@ -191,7 +191,7 @@ exports.getAllFollowing = async (user_id, requests) => {
     });
     return following;
   } catch (err) {
-    return err;
+    throw err;
   }
 };
 
@@ -204,21 +204,19 @@ exports.follow = async (follower_id, followed_id) => {
       // Condition of not following self
       message = "Cannot follow self!";
       return message;
-    } else {
-      if (!isUserExists) {
-        // Check if there is an user in database
-        message = "User does not exist!";
-        return message;
-      } else {
-        message = "Followed!";
-        // Create new follow
-        await Follower.create({
-          follower_id,
-          followed_id
-        });
-        return message;
-      }
     }
+    if (!isUserExists) {
+      // Check if there is an user in database
+      message = "User does not exist!";
+      return message;
+    }
+    message = "Followed!";
+    // Create new follow
+    await Follower.create({
+      follower_id,
+      followed_id
+    });
+    return message;
   } catch (err) { // Call API again with the same user_id and followed_id will cause error
     let message = "Unfollowed!";
     // Destroy like when call twice
@@ -283,7 +281,7 @@ exports.searchUsers = async (requests) => {
 
     return users;
   } catch (err) {
-    return err;
+    throw err;
   }
 }
 
@@ -297,6 +295,6 @@ const checkUserExistence = async (id) => {
       return user;
     }
   } catch (error) {
-    return error;
+    throw error;
   }
 };

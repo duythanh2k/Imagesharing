@@ -192,19 +192,17 @@ exports.getAllCmtDesc = async (id, sort) => {
       message = "Post does not exist!";
       comment = null;
       return { message, comment };
-    } else {
-      message = null;
-        // find all comments of current post and sort comments by lateset timestamp
-      comment = await Comment.findAll({
-        where: {
-          post_id: id,
-        },
-        // Order condition
-        order: ordered,
-      });
-      return { message, comment };
     }
-
+    message = null;
+      // find all comments of current post and sort comments by lateset timestamp
+    comment = await Comment.findAll({
+      where: {
+        post_id: id,
+      },
+      // Order condition
+      order: ordered,
+    });
+    return { message, comment };
   } catch (err) {
     throw err;
   }
@@ -224,23 +222,23 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
     // then Find a comment and delete
     if (!isPostExists) {
       message = "Post does not exist!";
-    } else {
-      if (!isCommentExists) {
-        message = "Comment does not exist!";
-      } else {
-        if (!isOwn) {
-          message = "You don't have permission";
-        } else {
-          message = null;
-          await Comment.destroy({
-            where: {
-              id: comment_id,
-              post_id: post_id,
-            },
-          });
-        }
-      }
+      return message;
     }
+    if (!isCommentExists) {
+      message = "Comment does not exist!";
+      return message;
+    }
+    if (!isOwn) {
+      message = "You don't have permission";
+      return message;
+    }
+    message = null;
+    await Comment.destroy({
+      where: {
+        id: comment_id,
+        post_id: post_id,
+      },
+    });
     return message;
   } catch (err) {
     throw err;
@@ -255,15 +253,14 @@ exports.likeComment = async (user_id, comment_id) => {
     if (!isCommentExists) {
       message = "Comment does not exist!";
       return message;
-    } else {
-      message = "Liked!";
-      // Create a new like
-      await CommentReact.create({
-        user_id,
-        comment_id,
-      });
-      return message;
     }
+    message = "Liked!";
+    // Create a new like
+    await CommentReact.create({
+      user_id,
+      comment_id,
+    });
+    return message;
   } catch (err) { // Call API again with the same user_id and comment_id will cause error
     let message = "Unliked!";
     // Destroy like when call twice
@@ -287,7 +284,7 @@ const  checkPostExistence = async (id) => {
       return post;
     }
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 const checkCommentExistence = async (id) => {
@@ -298,7 +295,7 @@ const checkCommentExistence = async (id) => {
       return comment;
     }
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 const checkCommentOwnership = async (id, user_id) => {
@@ -314,6 +311,6 @@ const checkCommentOwnership = async (id, user_id) => {
       return comment;
     }
   } catch (error) {
-    return error;
+    throw error;
   }
 };
