@@ -1,7 +1,8 @@
 const userService = require("../services/user.service");
 const jwt         = require("jsonwebtoken");
+
 exports.isAuth = async (req, res, next) => {
-  const accessToken = req.headers['authorization'];
+  const accessToken = req.headers["authorization"];
   if (!accessToken) {
     return res.status(401).json({
       status: "Error",
@@ -10,19 +11,20 @@ exports.isAuth = async (req, res, next) => {
       data: null,
     });
   }
-  const token =accessToken.split(' ')[1];
+  
+  const token = accessToken.split(" ")[1];
   try {
-    let verified= jwt.verify(token,process.env.ACCESS_TOKEN_SECRET);
+    let verified = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     req.idUser = verified.payload.idUser;
     req.email = verified.payload.email;
-    next()
+    next();
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(403).json({
-              status: "Error",
-              code: "UNAUTHOREZID",
-              message: "You must login to continue",
-              data: null,
-          });
+      status: "Error",
+      code: "UNAUTHOREZID",
+      message: "You must login to continue",
+      data: null,
+    });
   }
 };
