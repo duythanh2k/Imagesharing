@@ -234,29 +234,52 @@ exports.follow = async (follower_id, followed_id) => {
 
 // Search for other users
 exports.searchUsers = async (requests) => {
+  let users;
+  const findBy = [];
   try {
     if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
       requests.offset = 0;
       requests.limit = 2;
     }
-    let users = User.findAll({
-      where: { // OR operator by require ( `const {Op} = require('sequelize') )
-        [Op.or]: [
+    // Check if there is no query
+    // then data return null
+    if (!requests.search) {
+      users = null;
+    } else {
+      // If there is a query
+      // then check if it is a email or not
+      // if it is email type
+      //    search by email
+      // otherwise
+      //    search by firstname/lastname
+      if (!isEmail(requests.search)) {
+        findBy.push(
           {
             first_name: {
-              [Op.like]: '%' + requests.name + '%'
+              [Op.like]: '%' + requests.search + '%'
             }
           },
           {
             last_name: {
-              [Op.like]: '%' + requests.name + '%'
+              [Op.like]: '%' + requests.search + '%'
             }
           }
-        ]
-      },
-      offset: Number(requests.offset),
-      limit: Number(requests.limit)
-    });
+        );
+      } else {
+        findBy.push(
+          {
+            email: requests.search
+          }
+        )
+      }
+      users = User.findAll({
+        where: { // OR operator by require ( `const {Op} = require('sequelize') )
+          [Op.or]: findBy
+        },
+        offset: Number(requests.offset),
+        limit: Number(requests.limit)
+      });
+    }
 
     return users;
   } catch (err) {
