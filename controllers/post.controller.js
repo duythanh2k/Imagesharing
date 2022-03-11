@@ -70,9 +70,11 @@ exports.deleteImage = async (req, res, next) => {
 
 exports.getAllCmtDesc = async (req, res) => {
   try {
+    let postId = req.params.id;
+    let requests = req.query;
     let results = await postService.getAllCmtDesc(
-      req.params.id,
-      req.query.sort
+      postId,
+      requests
     );
     
     return res.json({

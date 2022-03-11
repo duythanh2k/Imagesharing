@@ -175,21 +175,44 @@ exports.updateProfile = async (idUser, user) => {
 
 // Get all users that the current user has followed
 exports.getAllFollowing = async (user_id, requests) => {
+  let followers;
+  const findBy = [];
   try {
     if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
       requests.offset = 0;
       requests.limit = 2;
     }
-    // Get all the user that current user is following
-    // by compare all "follower_id" of 'user following list' with current userId
-    let following = await Follower.findAll({
-      where: {
-        follower_id: user_id,
-      },
+
+    // Get all followed id and parse it to number
+    let getFollowedId = await Follower.findAll({
+      attributes:['followed_id'],
+      where:{
+          follower_id: user_id,
+      }
+    });
+    const followedId = getFollowedId.map((index) => Number(index.dataValues.followed_id));
+    let condition = [];
+    const findBy = await searchQuery(requests.search);
+    // Get all following of current user
+    // Check if there is no query
+    // then data return all following
+    if (!requests.search) {
+      condition.push({ id: followedId });
+    } else {
+      condition.push({
+        id: followedId,
+        [Op.or]: findBy
+      });
+    }
+    
+    followers = await User.findAll({
+      attributes:['id','first_name','last_name','email','avatar'],
+      where: condition,
       offset: Number(requests.offset),
       limit: Number(requests.limit),
     });
-    return following;
+
+    return followers;
   } catch (err) {
     throw err;
   }
@@ -197,9 +220,10 @@ exports.getAllFollowing = async (user_id, requests) => {
 
 // Follow/Unfollow other users
 exports.follow = async (follower_id, followed_id) => {
+  let message;
   try {
     let isUserExists = await checkUserExistence(followed_id);
-    let message;
+    let alreadyFollowed = await checkFollowerExistence(follower_id, followed_id);
     if (Number(followed_id) === Number(follower_id)) {
       // Condition of not following self
       message = "Cannot follow self!";
@@ -210,6 +234,17 @@ exports.follow = async (follower_id, followed_id) => {
       message = "User does not exist!";
       return message;
     }
+    if (alreadyFollowed) {
+      let message = "Unfollowed!";
+      // Destroy like when call twice
+      await Follower.destroy({
+        where: {
+          follower_id,
+          followed_id
+        }
+      });
+      return message;
+    }
     message = "Followed!";
     // Create new follow
     await Follower.create({
@@ -218,66 +253,33 @@ exports.follow = async (follower_id, followed_id) => {
     });
     return message;
   } catch (err) { // Call API again with the same user_id and followed_id will cause error
-    let message = "Unfollowed!";
-    // Destroy like when call twice
-    await Follower.destroy({
-      where: {
-        follower_id,
-        followed_id
-      }
-    });
-    return message;
+    throw err;
   }
 }
 
 // Search for other users
 exports.searchUsers = async (requests) => {
   let users;
-  const findBy = [];
   try {
     if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
       requests.offset = 0;
       requests.limit = 2;
     }
+    let condition = [];
+    const findBy = await searchQuery(requests.search);
     // Check if there is no query
-    // then data return null
+    // then data return all users
     if (!requests.search) {
-      users = null;
+      condition = null;
     } else {
-      // If there is a query
-      // then check if it is a email or not
-      // if it is email type
-      //    search by email
-      // otherwise
-      //    search by firstname/lastname
-      if (!isEmail(requests.search)) {
-        findBy.push(
-          {
-            first_name: {
-              [Op.like]: '%' + requests.search + '%'
-            }
-          },
-          {
-            last_name: {
-              [Op.like]: '%' + requests.search + '%'
-            }
-          }
-        );
-      } else {
-        findBy.push(
-          {
-            email: requests.search
-          }
-        )
-      }
-      users = User.findAll({
-        where: { // OR operator by require ( `const {Op} = require('sequelize') )
-          [Op.or]: findBy
-        },
-        offset: Number(requests.offset),
-        limit: Number(requests.limit)
-      });
+      // OR operator by require ( `const {Op} = require('sequelize') )
+      condition.push({ [Op.or]: findBy })
     }
+    users = User.findAll({
+      where: condition,
+      offset: Number(requests.offset),
+      limit: Number(requests.limit)
+    });
 
     return users;
   } catch (err) {
@@ -298,3 +300,51 @@ const checkUserExistence = async (id) => {
     throw error;
   }
 };
+const checkFollowerExistence = async (follower_id, followed_id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(follower_id) && !isNaN(followed_id)) {
+      const like = await Follower.findOne({
+        where: {
+          follower_id,
+          followed_id
+        }
+      });
+      return like;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+//Conditions for search query
+const searchQuery = async (requests) => {
+  const findBy = [];
+    // If there is a query
+    // then check if it is a email or not
+    // if it is email type
+    //    search by email
+    // otherwise
+    //    search by firstname/lastname
+  if (!isEmail(requests)) {
+    findBy.push(
+      {
+        first_name: {
+          [Op.like]: '%' + requests + '%'
+        }
+      },
+      {
+        last_name: {
+          [Op.like]: '%' + requests + '%'
+        }
+      }
+    );
+  } else {
+    findBy.push(
+      {
+        email: requests
+      }
+    )
+  }
+  return findBy;
+}
