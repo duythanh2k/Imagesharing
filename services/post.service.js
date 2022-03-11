@@ -1,8 +1,7 @@
-const User   = require("../models/user.model");
 const Posts  = require("../models/post.model");
 const Images = require("../models/image.model");
 const db     = require("../util/db");
-const { QueryTypes } = require("sequelize");
+const { QueryTypes, Sequelize } = require("sequelize");
 //Kiểm tra chuỗi nhập vào có rỗng hay không
 const isEmpty = function (value) {
     if (!value || 0 === value.length) {
@@ -52,31 +51,25 @@ exports.getAllImageUser = async (idUser, requests) => {
             order_by: 'DESC'
         }
       }
-    //   let result=await Images.findAll({
-    //       attributes:['id','path','caption'],
-    //       include:
-    //       [{  model:Posts,
-    //           required:true,
-    //           attributes:['created_at'],
-    //           where:{
-    //               user_id:idUser,
-    //           },
-    //           order:[
-    //               ['created_at','DESC']
-    //           ]
-    //       }],
-    //       limit: Number(requests.limit),
-    //       offset: Number(requests.offset)
-    //        });
-      let result = await db.query(
-        `Select images.id,images.path,images.caption 
-        from posts INNER JOIN images ON posts.id=images.post_id
-        Where posts.user_id=?
-        ORDER BY ? ? 
-        LIMIT ?  
-        OFFSET ?`,
-        { replacements:[idUser,requests.sort_by,requests.order_by,Number(requests.limit),Number(requests.offset)],
-             type: QueryTypes.SELECT });
+      let result=await Images.findAll({
+          attributes:['id','path','caption'],
+          include:
+          [{  model:Posts,
+              attributes:['created_at'],
+              required:true,
+              where:{
+                  user_id:idUser,
+              },
+              order:[
+                [requests.sort_by,requests.order_by]
+              ]
+          }],
+          order:[
+            [Sequelize.col(requests.sort_by),requests.order_by]
+          ],
+          limit: Number(requests.limit),
+          offset: Number(requests.offset)
+           });
       return result;
     } catch (err) {
       throw err;
