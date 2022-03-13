@@ -1,42 +1,12 @@
-const User   = require("../models/user.model");
-const Post  = require("../models/post.model");
-const Comment = require("../models/comment.model");
-const CommentReact = require("../models/comment_react.model");
-const Image = require("../models/image.model");
-const db     = require("../util/db");
+const Post           = require("../models/post.model");
+const PostReact      = require("../models/post_react.model");
+const Comment        = require("../models/comment.model");
+const CommentReact   = require("../models/comment_react.model");
+const Image          = require("../models/image.model");
+const db             = require("../util/db");
 const { QueryTypes } = require("sequelize");
-//Kiểm tra chuỗi nhập vào có rỗng hay không
-const isEmpty = function (value) {
-    if (!value || 0 === value.length) {
-      return true;
-    }
-  };
-  
-//Kiểm tra có phải ngày tháng hay không
-const isDate = function (value) {
-    var formats = [
-      moment.ISO_8601,
-      "MM/DD/YYYY  :)  HH*mm*ss",
-      "YYYY/MM/DD",
-      "MM/DD/YYYY",
-      "YYYY-MM-DD",
-      "MM-DD-YYYY",
-    ];
-    if (moment(value, formats, true).isValid()) {
-      return true;
-    }
-  };
-  
-//Kiểm tra có phải email hay không
-const isEmail = function (value) {
-    let filter =
-      /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-    if (filter.test(value)) {
-      return true;
-    } else {
-      return false;
-    }
-  };
+
+
 //Lấy tất cả các ảnh của user login
 exports.getAllImageUser = async (idUser, requests) => {
     try {
@@ -293,8 +263,41 @@ exports.likeComment = async (user_id, comment_id) => {
 };
 
 
+//Kiểm tra chuỗi nhập vào có rỗng hay không
+const isEmpty = function (value) {
+  if (!value || 0 === value.length) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải ngày tháng hay không
+const isDate = function (value) {
+  var formats = [
+    moment.ISO_8601,
+    "MM/DD/YYYY  :)  HH*mm*ss",
+    "YYYY/MM/DD",
+    "MM/DD/YYYY",
+    "YYYY-MM-DD",
+    "MM-DD-YYYY",
+  ];
+  if (moment(value, formats, true).isValid()) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải email hay không
+const isEmail = function (value) {
+  let filter =
+    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  if (filter.test(value)) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 // Functions check existence
-const  checkPostExistence = async (id) => {
+const checkPostExistence = async (id) => {
   //Check condition where the id exists
   try {
     if (!isNaN(id)) {

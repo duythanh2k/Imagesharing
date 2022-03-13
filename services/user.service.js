@@ -1,45 +1,11 @@
-const User = require("../models/user.model");
-const Post = require("../models/post.model");
-const Image = require("../models/image.model");
-const Follower = require("../models/follower.model");
-const db = require("../util/db");
-const jwt = require("jsonwebtoken");
-const moment = require("moment");
-const bcrypt = require("bcryptjs");
+const User               = require("../models/user.model");
+const Follower           = require("../models/follower.model");
+const db                 = require("../util/db");
+const jwt                = require("jsonwebtoken");
+const moment             = require("moment");
+const bcrypt             = require("bcryptjs");
 const { QueryTypes, Op } = require("sequelize");
 
-//Kiểm tra chuỗi nhập vào có rỗng hay không
-const isEmpty = function (value) {
-  if (!value || 0 === value.length) {
-    return true;
-  }
-};
-
-//Kiểm tra có phải ngày tháng hay không
-const isDate = function (value) {
-  var formats = [
-    moment.ISO_8601,
-    "MM/DD/YYYY  :)  HH*mm*ss",
-    "YYYY/MM/DD",
-    "MM/DD/YYYY",
-    "YYYY-MM-DD",
-    "MM-DD-YYYY",
-  ];
-  if (moment(value, formats, true).isValid()) {
-    return true;
-  }
-};
-
-//Kiểm tra có phải email hay không
-const isEmail = function (value) {
-  let filter =
-    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-  if (filter.test(value)) {
-    return true;
-  } else {
-    return false;
-  }
-};
 
 //Đăng nhập
 exports.signUp = async function (user) {
@@ -293,6 +259,39 @@ exports.searchUsers = async (requests) => {
   }
 }
 
+
+//Kiểm tra chuỗi nhập vào có rỗng hay không
+const isEmpty = function (value) {
+  if (!value || 0 === value.length) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải ngày tháng hay không
+const isDate = function (value) {
+  var formats = [
+    moment.ISO_8601,
+    "MM/DD/YYYY  :)  HH*mm*ss",
+    "YYYY/MM/DD",
+    "MM/DD/YYYY",
+    "YYYY-MM-DD",
+    "MM-DD-YYYY",
+  ];
+  if (moment(value, formats, true).isValid()) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải email hay không
+const isEmail = function (value) {
+  let filter =
+    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  if (filter.test(value)) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 // Functions check existence
 const checkUserExistence = async (id) => {
