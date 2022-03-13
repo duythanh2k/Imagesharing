@@ -2,7 +2,7 @@ const User   = require("../models/user.model");
 const Post  = require("../models/post.model");
 const Comment = require("../models/comment.model");
 const CommentReact = require("../models/comment_react.model");
-const Images = require("../models/image.model");
+const Image = require("../models/image.model");
 const db     = require("../util/db");
 const { QueryTypes } = require("sequelize");
 //Kiểm tra chuỗi nhập vào có rỗng hay không
@@ -54,10 +54,10 @@ exports.getAllImageUser = async (idUser, requests) => {
             order_by: 'DESC'
         }
       }
-    //   let result=await Images.findAll({
+    //   let result=await Image.findAll({
     //       attributes:['id','path','caption'],
     //       include:
-    //       [{  model:Posts,
+    //       [{  model:Post,
     //           required:true,
     //           attributes:['created_at'],
     //           where:{
@@ -89,7 +89,7 @@ exports.getAllImageUser = async (idUser, requests) => {
   exports.updateCapImage = async (idImage,idUser,newCaption) => {
     try {
       //Kiểm tra image có tồn tại hay không
-      let check = await Images.findOne({ where: { id : idImage } });
+      let check = await Image.findOne({ where: { id : idImage } });
       if(!check){
         let err = {
           code: "NOT_FOUND",
@@ -105,7 +105,7 @@ exports.getAllImageUser = async (idUser, requests) => {
         };
         throw err;
       }
-      let checkOwner=await Images.findAll({
+      let checkOwner=await Image.findAll({
             where: { id:idImage },
             include:
             [{  model:Post,
@@ -121,7 +121,7 @@ exports.getAllImageUser = async (idUser, requests) => {
           };
           throw err;
       }  
-      await Images.update(
+      await Image.update(
         {
           caption: newCaption,
         },
@@ -138,7 +138,7 @@ exports.getAllImageUser = async (idUser, requests) => {
   exports.deleteImage = async (idUser,idImage) => {
     try {
       //Kiểm tra image có tồn tại hay không
-      let check = await Images.findOne({ where: { id : idImage } });
+      let check = await Image.findOne({ where: { id : idImage } });
       if(!check){
         let err = {
           code: "NOT_FOUND",
@@ -146,7 +146,7 @@ exports.getAllImageUser = async (idUser, requests) => {
         };
         throw err;
       }
-      let checkOwner=await Images.findAll({
+      let checkOwner=await Image.findAll({
         where: { id:idImage },
         include:
         [{  model:Post,
@@ -164,7 +164,7 @@ exports.getAllImageUser = async (idUser, requests) => {
         };
         throw err;
       }  
-      await Images.destroy({
+      await Image.destroy({
         where: { id: idImage },
       });
       return;
