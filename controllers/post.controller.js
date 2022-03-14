@@ -256,8 +256,14 @@ exports.listPost = async (req, res, next) => {
 exports.updatePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
-    const post = req.body;
-    let result = await postService.updatePost(postId, post);
+    const description = req.body.description;
+    const image = [
+      {
+        caption: req.body.caption,
+        uploadToken: req.body.token,
+      },
+    ];
+    let result = await postService.updatePost(postId ,description,image, req.idUser);
     res.status(200).json({
       status: "success",
       code: null,
