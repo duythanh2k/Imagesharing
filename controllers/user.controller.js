@@ -1,4 +1,4 @@
-const userService = require("../services/user.service");
+const userService = require('../services/user.service');
 
 //Đăng ký
 exports.signUp = async function (req, res, next) {
@@ -14,14 +14,14 @@ exports.signUp = async function (req, res, next) {
     };
     await userService.signUp(user);
     res.status(200).json({
-      status: "Success",
+      status: 'Success',
       code: null,
       message: null,
       data: null,
     });
   } catch (err) {
     res.status(400).json({
-      status: "Error",
+      status: 'Error',
       code: err.code,
       message: err.message,
       data: null,
@@ -41,14 +41,14 @@ exports.signIn = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET
     );
     return res.json({
-      status: "Success",
+      status: 'Success',
       code: null,
       message: null,
       data: accessToken,
     });
   } catch (err) {
     res.status(400).json({
-      status: "Error",
+      status: 'Error',
       code: err.code,
       message: err.message,
       data: null,
@@ -61,14 +61,14 @@ exports.profile = async (req, res, next) => {
   try {
     let result = await userService.profile(req.idUser);
     return res.json({
-      status: "Success",
+      status: 'Success',
       code: null,
       message: null,
       data: result,
     });
   } catch (err) {
     res.status(400).json({
-      status: "Error",
+      status: 'Error',
       code: err.code,
       message: err.message,
       data: null,
@@ -83,14 +83,14 @@ exports.updateProfile = async (req, res, next) => {
     let user = req.body;
     await userService.updateProfile(idUser, user);
     return res.json({
-      status: "Success",
+      status: 'Success',
       code: null,
       message: null,
       data: null,
     });
   } catch (err) {
     res.status(400).json({
-      status: "Error",
+      status: 'Error',
       code: err.code,
       message: err.message,
       data: null,
@@ -105,40 +105,40 @@ exports.getAllFollowing = async (req, res) => {
     let requests = req.query;
     let following = await userService.getAllFollowing(userId, requests);
     return res.json({
-      status: "Success",
+      status: 'Success',
       code: null,
       message: null,
       data: following,
     });
   } catch (err) {
     res.status(400).json({
-      status: "Error",
+      status: 'Error',
       code: err.code,
       message: err.message,
       data: null,
     });
   }
-}
+};
 
 // Follow/Unfollow other users
 exports.follow = async (req, res) => {
   try {
     let results = await userService.follow(req.idUser, req.params.id);
     return res.json({
-      status: "Success",
+      status: 'Success',
       code: null,
       message: results,
       data: null,
     });
   } catch (err) {
     res.status(400).json({
-      status: "Error",
+      status: 'Error',
       code: err.code,
       message: err.message,
       data: null,
     });
   }
-}
+};
 
 // Search for other users
 exports.searchUsers = async (req, res) => {
@@ -146,17 +146,73 @@ exports.searchUsers = async (req, res) => {
     let requests = req.query;
     let results = await userService.searchUsers(requests);
     return res.json({
-      status: "Success",
+      status: 'Success',
       code: null,
       message: null,
       data: results,
     });
   } catch (err) {
     res.status(400).json({
-      status: "Error",
+      status: 'Error',
       code: err.code,
       message: err.message,
       data: null,
     });
   }
-}
+};
+
+// do tuan thanh
+//search image
+
+exports.getImageBy = async (req, res) => {
+  try {
+    let result = await userService.getImageBy(
+      req.query.caption,
+      req.query.limit,
+      req.query.offset,
+      req.query.firstName,
+      req.query.lastName,
+      req.query.startDate,
+      req.query.endDate
+    );
+    return res.json({
+      status: 'Success',
+      code: null,
+      message: null,
+      data: result,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'Error',
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+};
+
+//
+exports.getAllImage = async (req, res) => {
+  try {
+    let result = await userService.getAllImage(
+      req.email,
+      req.query.createdBy,
+      req.query.following,
+      req.query.limit,
+      req.query.offset
+    );
+    return res.json({
+      status: 'Success',
+      code: null,
+      message: null,
+      data: result,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'Error',
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+};
