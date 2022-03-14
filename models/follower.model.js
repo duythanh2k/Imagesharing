@@ -8,10 +8,12 @@ const follower = db.define(
     follower_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
+      allowNull: false
     },
     followed_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
+      allowNull: false
     },
   },
   {
@@ -20,6 +22,6 @@ const follower = db.define(
   }
 );
 
-follower.sync({ force: false });
+// follower.sync({ force: false });
 
 module.exports = follower;

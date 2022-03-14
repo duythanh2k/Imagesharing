@@ -1,4 +1,8 @@
 const Posts  = require("../models/post.model");
+const User   = require("../models/user.model");
+const Post  = require("../models/post.model");
+const Comment = require("../models/comment.model");
+const CommentReact = require("../models/comment_react.model");
 const Images = require("../models/image.model");
 const db     = require("../util/db");
 const { QueryTypes, Sequelize } = require("sequelize");
@@ -99,11 +103,9 @@ exports.getAllImageUser = async (idUser, requests) => {
       let checkOwner=await Images.findAll({
             where: { id:idImage },
             include:
-            [{  model:Posts,
+            [{  model:Post,
                 required:true,
-                where:{
-                    user_id:idUser,
-                }
+                where: {id:idUser}
             }],
         });
         //Kiểm tra ảnh có phải của tk đang login
@@ -142,13 +144,13 @@ exports.getAllImageUser = async (idUser, requests) => {
       let checkOwner=await Images.findAll({
         where: { id:idImage },
         include:
-        [{  model:Posts,
+        [{  model:Post,
             required:true,
             where:{
                 user_id:idUser,
             }
         }],
-        });
+      });
         //Kiểm tra ảnh có phải của tk đang login
       if(checkOwner.length===0){
         let err = {
@@ -166,3 +168,170 @@ exports.getAllImageUser = async (idUser, requests) => {
     }
   };
   
+
+// Get all comments of a post sort by timestamp
+exports.getAllCmtDesc = async (id, requests) => {
+  try {
+    const ordered = [];
+    let message, comment;
+    // query for sort comment by descend timestamp
+    if (requests.sort === "-created") {
+      ordered.push(["created_at", "DESC"]);
+    }
+    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+      requests.offset = 0;
+      requests.limit = 2;
+    }
+
+    let isPostExists = await checkPostExistence(id);
+    // Check if there is a post in database
+    if (!isPostExists) {
+      message = "Post does not exist!";
+      comment = null;
+      return { message, comment };
+    }
+    message = null;
+      // find all comments of current post and sort comments by lateset timestamp
+    comment = await Comment.findAll({
+      where: {
+        post_id: id,
+      },
+      // Order condition
+      order: ordered,
+      offset: Number(requests.offset),
+      limit: Number(requests.limit)
+    });
+    return { message, comment };
+  } catch (err) {
+    throw err;
+  }
+};
+
+// Delete a comments of a post
+exports.deleteComment = async (user_id, post_id, comment_id) => {
+  let message;
+  try {
+    let isPostExists = await checkPostExistence(post_id);
+    let isCommentExists = await checkCommentExistence(comment_id);
+    let isOwn = await checkCommentOwnership(comment_id, user_id);
+    
+    // Check if there is a post in database
+    // then Check if there is a comment in database
+    // then Check if the current user own this comment
+    // then Find a comment and delete
+    if (!isPostExists) {
+      message = "Post does not exist!";
+      return message;
+    }
+    if (!isCommentExists) {
+      message = "Comment does not exist!";
+      return message;
+    }
+    if (!isOwn) {
+      message = "You don't have permission";
+      return message;
+    }
+    message = null;
+    await Comment.destroy({
+      where: {
+        id: comment_id,
+        post_id: post_id,
+      },
+    });
+    return message;
+  } catch (err) {
+    throw err;
+  }
+};
+
+exports.likeComment = async (user_id, comment_id) => {
+  try {
+    let isCommentExists = await checkCommentExistence(comment_id);
+    let alreadyLiked = await checkCommentReactExistence(user_id, comment_id);
+    let message;
+    // Check if there is a comment in database
+    if (!isCommentExists) {
+      message = "Comment does not exist!";
+      return message;
+    }
+    if (alreadyLiked) {
+      message = "Unliked!";
+      // Destroy like when call twice
+      await CommentReact.destroy({
+        where: {
+          user_id,
+          comment_id,
+        },
+      });
+      return message;
+    }
+    message = "Liked!";
+    // Create a new like
+    await CommentReact.create({
+      user_id,
+      comment_id,
+    });
+    return message;
+  } catch (err) { // Call API again with the same user_id and comment_id will cause error
+    throw err;
+  }
+};
+
+
+// Functions check existence
+const  checkPostExistence = async (id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(id)) {
+      const post = await Post.findByPk(id);
+      return post;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+const checkCommentExistence = async (id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(id)) {
+      const comment = await Comment.findByPk(id);
+      return comment;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+const checkCommentReactExistence = async (user_id, comment_id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(user_id) && !isNaN(comment_id)) {
+      const like = await CommentReact.findOne({
+        where: {
+          user_id,
+          comment_id
+        }
+      });
+      return like;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Function check ownership
+const checkCommentOwnership = async (id, user_id) => {
+  //Check condition where this comment belongs to the current user
+  try {
+    if (!isNaN(id) && !isNaN(user_id)) {
+      const comment = await Comment.findOne({
+        where: {
+          id,
+          user_id,
+        }
+      });
+      return comment;
+    }
+  } catch (error) {
+    throw error;
+  }
+};

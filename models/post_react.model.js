@@ -11,10 +11,6 @@ const PostReact = db.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    text: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
