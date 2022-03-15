@@ -13,28 +13,6 @@ const PostReact=db.define('PostReacts',{
             deferrable: Deferrable.INITIALLY_IMMEDIATE
         }
     },
-<<<<<<< HEAD
-    user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-        deferrable: Deferrable.INITIALLY_IMMEDIATE,
-      },
-    },
-    post_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: Post,
-        key: "id",
-        deferrable: Deferrable.INITIALLY_IMMEDIATE,
-      },
-    },
-  },
-  {
-=======
     user_id:{
         type:DataTypes.INTEGER,
         primaryKey:true,
@@ -47,7 +25,6 @@ const PostReact=db.define('PostReacts',{
     }
 },
 {     
->>>>>>> 3165bfd42867f7cb562a5d81fbafa1805681ecb4
     index: [
         {
             name: 'index_postr1',
