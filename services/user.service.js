@@ -4,6 +4,7 @@ const jwt                = require("jsonwebtoken");
 const moment             = require("moment");
 const bcrypt             = require("bcryptjs");
 const { QueryTypes, Op } = require("sequelize");
+const db                 = require("../util/db");
 const date               = require('date-and-time');
 
 
