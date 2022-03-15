@@ -11,18 +11,17 @@ const { Sequelize, QueryTypes } = require("sequelize");
 exports.getAllImageUser = async (idUser, requests) => {
     try {
       //Kiểm tra dữ liệu nhập vào có trống hay không, nếu trống thì set default
-      if (
-        isEmpty(requests.limit) ||
-        isEmpty(requests.offset) ||
-        isEmpty(requests.sort_by) ||
-        isEmpty(requests.order_by)
-      ) {
-        requests={
-            limit: 20,
-            offset: 0,
-            sort_by: 'created_at',
-            order_by: 'DESC'
-        }
+      if(isEmpty(requests.limit)){
+        requests.limit=20;
+      }
+      if(isEmpty(requests.offset)){
+        requests.offset=0;
+      }
+      if(isEmpty(requests.sort_by)){
+        requests.sort_by='created_at';
+      }
+      if(isEmpty(requests.order_by)){
+        requests.order_by='DESC';
       }
       let result=await Image.findAll({
           attributes:['id','path','caption'],

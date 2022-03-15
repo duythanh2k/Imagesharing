@@ -101,6 +101,27 @@ paths:
         - application/json
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: The numbers of items to return
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: The number of items to skip before starting to collect the result set
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+          description: sort by attribute
+        - in: query
+          name: order_by
+          schema:
+            type: string
+          description: sort ascending or descending
       responses:
         '200':
           description: Success
