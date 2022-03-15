@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-const Post = require("../models/post.model");
-const Comment = require("../models/comment.model");
-const CommentReact = require("../models/comment_react.model");
-const Image = require("../models/image.model");
-const jwt = require("jsonwebtoken");
-const { Sequelize,QueryTypes } = require("sequelize");
-const Post_react = require("../models/post_react.model");
-=======
 const Post           = require("../models/post.model");
 const PostReact      = require("../models/post_react.model");
 const Comment        = require("../models/comment.model");
@@ -14,7 +5,6 @@ const CommentReact   = require("../models/comment_react.model");
 const Image          = require("../models/image.model");
 const jwt            = require("jsonwebtoken");
 const { Sequelize, QueryTypes } = require("sequelize");
->>>>>>> b5963c38ee98745dfa332dd2b02d0fa7809c3e55
 
 
 //Lấy tất cả các ảnh của user login

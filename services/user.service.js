@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-const User = require('../models/user.model');
-const Follower = require('../models/follower.model');
-const db = require('../util/db');
-const jwt = require('jsonwebtoken');
-const moment = require('moment');
-const bcrypt = require('bcryptjs');
-const { QueryTypes, Op } = require('sequelize');
-const date = require('date-and-time');
-=======
 const User               = require("../models/user.model");
 const Follower           = require("../models/follower.model");
 const jwt                = require("jsonwebtoken");
@@ -16,7 +6,6 @@ const bcrypt             = require("bcryptjs");
 const { QueryTypes, Op } = require("sequelize");
 const db                 = require("../util/db");
 const date               = require('date-and-time');
->>>>>>> b5963c38ee98745dfa332dd2b02d0fa7809c3e55
 
 
 //Đăng nhập
