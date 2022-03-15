@@ -1,12 +1,14 @@
-const User = require("../models/user.model");
-const Posts = require("../models/post.model");
-const Images = require("../models/image.model");
-const Follower = require("../models/follower.model");
-const db = require("../util/db");
-const jwt = require("jsonwebtoken");
-const moment = require("moment");
-const bcrypt = require("bcryptjs");
-const { QueryTypes, Op } = require("sequelize");
+const User = require('../models/user.model');
+const Posts = require('../models/post.model');
+const Images = require('../models/image.model');
+const Follower = require('../models/follower.model');
+const db = require('../util/db');
+const jwt = require('jsonwebtoken');
+const moment = require('moment');
+const bcrypt = require('bcryptjs');
+const { QueryTypes, Op } = require('sequelize');
+const { request } = require('express');
+const date = require('date-and-time');
 
 //Kiểm tra chuỗi nhập vào có rỗng hay không
 const isEmpty = function (value) {
@@ -19,11 +21,11 @@ const isEmpty = function (value) {
 const isDate = function (value) {
   var formats = [
     moment.ISO_8601,
-    "MM/DD/YYYY  :)  HH*mm*ss",
-    "YYYY/MM/DD",
-    "MM/DD/YYYY",
-    "YYYY-MM-DD",
-    "MM-DD-YYYY",
+    'MM/DD/YYYY  :)  HH*mm*ss',
+    'YYYY/MM/DD',
+    'MM/DD/YYYY',
+    'YYYY-MM-DD',
+    'MM-DD-YYYY',
   ];
   if (moment(value, formats, true).isValid()) {
     return true;
@@ -46,22 +48,22 @@ exports.signUp = async function (user) {
   //Kiểm tra dữ liệu nhập vào có trống hay không
   if (
     isEmpty(user.email) ||
-    isEmpty(user.password)||
+    isEmpty(user.password) ||
     isEmpty(user.first_name) ||
     isEmpty(user.last_name) ||
     isEmpty(user.dob)
   ) {
     let err = {
-      code: "INVALID_INPUT",
-      message: "Input data is invalid",
+      code: 'INVALID_INPUT',
+      message: 'Input data is invalid',
     };
     throw err;
   }
   // Kiểm tra định dạng email
   if (!isEmail(user.email)) {
     let err = {
-      code: "DATATYPE_ERROR",
-      message: "Email is incorrect datatype",
+      code: 'DATATYPE_ERROR',
+      message: 'Email is incorrect datatype',
     };
     throw err;
   }
@@ -69,21 +71,21 @@ exports.signUp = async function (user) {
   let checkEmail = await User.findOne({ where: { email: user.email } });
   if (checkEmail != null) {
     let err = {
-      code: "ER_DUP_ENTRY",
-      message: "Email must be unique",
+      code: 'ER_DUP_ENTRY',
+      message: 'Email must be unique',
     };
     throw err;
   }
   // Kiểm tra định dạng ngày tháng
   if (!isDate(user.dob)) {
     let err = {
-      code: "INCORRECT_DATATYPE",
-      message: "Date of birth is incorrect datatype",
+      code: 'INCORRECT_DATATYPE',
+      message: 'Date of birth is incorrect datatype',
     };
     throw err;
   }
   const hashPass = bcrypt.hashSync(user.password, 10);
-  user.password=hashPass;
+  user.password = hashPass;
   var result = await User.create(user);
   return result;
 };
@@ -94,8 +96,8 @@ exports.generateToken = async (user, secretSignature) => {
     //Kiểm tra dữ liệu nhập vào có trống hay không
     if (isEmpty(user.email) || isEmpty(user.password)) {
       let err = {
-        code: "INVALID_INPUT",
-        message: "Input data is invalid",
+        code: 'INVALID_INPUT',
+        message: 'Input data is invalid',
       };
       throw err;
     }
@@ -103,8 +105,8 @@ exports.generateToken = async (user, secretSignature) => {
     let checkUser = await User.findOne({ where: { email: user.email } });
     if (checkUser === null) {
       let err = {
-        code: "NOT_FOUND",
-        message: "Can not found user",
+        code: 'NOT_FOUND',
+        message: 'Can not found user',
       };
       throw err;
     }
@@ -112,8 +114,8 @@ exports.generateToken = async (user, secretSignature) => {
     let isPassValid = bcrypt.compareSync(user.password, checkUser.password);
     if (!isPassValid) {
       let err = {
-        code: "INCORRECT_PASSWORD",
-        message: "Password is incorrect",
+        code: 'INCORRECT_PASSWORD',
+        message: 'Password is incorrect',
       };
       throw err;
     }
@@ -127,7 +129,7 @@ exports.generateToken = async (user, secretSignature) => {
       },
       secretSignature,
       {
-        algorithm: "HS256",
+        algorithm: 'HS256',
       }
     );
   } catch (error) {
@@ -157,8 +159,8 @@ exports.updateProfile = async (idUser, user) => {
     //Kiểm tra định dạng của ngày tháng nếu có
     if (!isEmpty(user.dob) && !isDate(user.dob)) {
       let err = {
-        code: "INCORRECT_DATATYPE",
-        message: "Date of birth is incorrect datatype",
+        code: 'INCORRECT_DATATYPE',
+        message: 'Date of birth is incorrect datatype',
       };
       throw err;
     }
@@ -185,12 +187,14 @@ exports.getAllFollowing = async (user_id, requests) => {
 
     // Get all followed id and parse it to number
     let getFollowedId = await Follower.findAll({
-      attributes:['followed_id'],
-      where:{
-          follower_id: user_id,
-      }
+      attributes: ['followed_id'],
+      where: {
+        follower_id: user_id,
+      },
     });
-    const followedId = getFollowedId.map((index) => Number(index.dataValues.followed_id));
+    const followedId = getFollowedId.map((index) =>
+      Number(index.dataValues.followed_id)
+    );
     let condition = [];
     const findBy = await searchQuery(requests.search);
     // Get all following of current user
@@ -201,12 +205,12 @@ exports.getAllFollowing = async (user_id, requests) => {
     } else {
       condition.push({
         id: followedId,
-        [Op.or]: findBy
+        [Op.or]: findBy,
       });
     }
-    
+
     followers = await User.findAll({
-      attributes:['id','first_name','last_name','email','avatar'],
+      attributes: ['id', 'first_name', 'last_name', 'email', 'avatar'],
       where: condition,
       offset: Number(requests.offset),
       limit: Number(requests.limit),
@@ -223,39 +227,43 @@ exports.follow = async (follower_id, followed_id) => {
   let message;
   try {
     let isUserExists = await checkUserExistence(followed_id);
-    let alreadyFollowed = await checkFollowerExistence(follower_id, followed_id);
+    let alreadyFollowed = await checkFollowerExistence(
+      follower_id,
+      followed_id
+    );
     if (Number(followed_id) === Number(follower_id)) {
       // Condition of not following self
-      message = "Cannot follow self!";
+      message = 'Cannot follow self!';
       return message;
     }
     if (!isUserExists) {
       // Check if there is an user in database
-      message = "User does not exist!";
+      message = 'User does not exist!';
       return message;
     }
     if (alreadyFollowed) {
-      let message = "Unfollowed!";
+      let message = 'Unfollowed!';
       // Destroy like when call twice
       await Follower.destroy({
         where: {
           follower_id,
-          followed_id
-        }
+          followed_id,
+        },
       });
       return message;
     }
-    message = "Followed!";
+    message = 'Followed!';
     // Create new follow
     await Follower.create({
       follower_id,
-      followed_id
+      followed_id,
     });
     return message;
-  } catch (err) { // Call API again with the same user_id and followed_id will cause error
+  } catch (err) {
+    // Call API again with the same user_id and followed_id will cause error
     throw err;
   }
-}
+};
 
 // Search for other users
 exports.searchUsers = async (requests) => {
@@ -273,20 +281,19 @@ exports.searchUsers = async (requests) => {
       condition = null;
     } else {
       // OR operator by require ( `const {Op} = require('sequelize') )
-      condition.push({ [Op.or]: findBy })
+      condition.push({ [Op.or]: findBy });
     }
     users = User.findAll({
       where: condition,
       offset: Number(requests.offset),
-      limit: Number(requests.limit)
+      limit: Number(requests.limit),
     });
 
     return users;
   } catch (err) {
     throw err;
   }
-}
-
+};
 
 // Functions check existence
 const checkUserExistence = async (id) => {
@@ -307,8 +314,8 @@ const checkFollowerExistence = async (follower_id, followed_id) => {
       const like = await Follower.findOne({
         where: {
           follower_id,
-          followed_id
-        }
+          followed_id,
+        },
       });
       return like;
     }
@@ -320,31 +327,202 @@ const checkFollowerExistence = async (follower_id, followed_id) => {
 //Conditions for search query
 const searchQuery = async (requests) => {
   const findBy = [];
-    // If there is a query
-    // then check if it is a email or not
-    // if it is email type
-    //    search by email
-    // otherwise
-    //    search by firstname/lastname
+  // If there is a query
+  // then check if it is a email or not
+  // if it is email type
+  //    search by email
+  // otherwise
+  //    search by firstname/lastname
   if (!isEmail(requests)) {
     findBy.push(
       {
         first_name: {
-          [Op.like]: '%' + requests + '%'
-        }
+          [Op.like]: '%' + requests + '%',
+        },
       },
       {
         last_name: {
-          [Op.like]: '%' + requests + '%'
-        }
+          [Op.like]: '%' + requests + '%',
+        },
       }
     );
   } else {
-    findBy.push(
-      {
-        email: requests
-      }
-    )
+    findBy.push({
+      email: requests,
+    });
   }
   return findBy;
-}
+};
+
+// Do Tuan Thanh
+// search image
+exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
+  try {
+    //limit, offset
+    let pageAsNumber = parseInt(offset);
+    let sizeAsNumber = parseInt(limit);
+    offset = 0;
+    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+      offset = pageAsNumber;
+    }
+
+    limit = 2;
+    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
+      limit = sizeAsNumber;
+    }
+
+    // query: lấy tất cả ảnh của người tạo theo id
+    let createdByWhereClause = '';
+    if (!isNaN(createdBy)) {
+      createdByWhereClause = `AND posts.user_id = ${createdBy}`;
+    }
+
+    //query: lấy tất cả ảnh theo following
+    let followingWhereClause = '';
+    if (following == 'true') {
+      followingWhereClause = `AND posts.user_id IN 
+                              (SELECT followed_id FROM \`followers\` 
+                                WHERE follower_id = ${idUser})`;
+    }
+    //
+    const rows = await db.query(
+      `SELECT images.caption,  images.path, posts.description,posts.created_at, 
+        users.first_name , users.last_name,users.id as userId
+      FROM \`images\`
+        JOIN \`posts\`
+          ON images.post_id = posts.id
+        JOIN \`users\`
+          ON users.id=posts.user_id
+        WHERE 1 = 1
+        ${followingWhereClause}
+        ${createdByWhereClause}
+       
+      LIMIT ${limit}
+      OFFSET ${offset} `,
+      { plain: false, type: QueryTypes.SELECT }
+    );
+    if (Object.keys(rows).length === 0) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Not found image!',
+      };
+      throw err;
+    }
+
+    return rows;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+exports.getImageBy = async (search, limit, offset) => {
+  try {
+    let pageAsNumber = Number.parseInt(offset);
+    let sizeAsNumber = Number.parseInt(limit);
+    offset = 0;
+    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+      offset = pageAsNumber;
+    }
+    limit = 2;
+    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
+      limit = sizeAsNumber;
+    }
+
+    var searchWhereClause = '';
+    if (search) {
+      searchWhereClause = ` and images.caption like '%${search}%' or CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%'`;
+    }
+
+    const rows = await db.query(
+      `SELECT  images.caption,images.path,  posts.description,posts.created_at, CONCAT(users.first_name, ' ', users.last_name) as userPost, users.id as userId
+       FROM \`images\`
+        JOIN \`posts\`
+          ON images.post_id = posts.id
+	      JOIN \`users\` 
+		      ON users.id=posts.user_id
+        WHERE 1=1 
+          ${searchWhereClause} 
+      
+        LIMIT ${limit}
+        OFFSET ${offset} `,
+      { plain: false, type: QueryTypes.SELECT }
+    );
+    if (Object.keys(rows).length === 0) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Not found image!',
+      };
+      throw err;
+    }
+    return rows;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+exports.getImageByDate = async (startDate, endDate, limit, offset) => {
+  try {
+    let pageAsNumber = Number.parseInt(offset);
+    let sizeAsNumber = Number.parseInt(limit);
+    offset = 0;
+    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+      offset = pageAsNumber;
+    }
+    limit = 2;
+    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
+      limit = sizeAsNumber;
+    }
+
+    //search date
+    if (!isDate(startDate) || !isDate(endDate)) {
+      let err = {
+        code: 'INCORRECT_DATATYPE',
+        message: 'Input date time is incorrect datatype',
+      };
+      throw err;
+    }
+
+    var fdate = date.format(new Date(startDate), 'YYYY/MM/DD HH:mm:ss');
+    var edate = date.format(new Date(endDate), 'YYYY/MM/DD HH:mm:ss');
+
+    if (fdate.valueOf() > edate.valueOf()) {
+      let err = {
+        code: 'INVALID_INPUT',
+        message: 'End date must be greater than or equal to start date',
+      };
+      throw err;
+    }
+
+    var dateWhereClause = '';
+    if (startDate && endDate) {
+      dateWhereClause = `and posts.created_at between '${fdate}' and '${edate}'`;
+    }
+
+    const rows = await db.query(
+      `SELECT  images.caption,images.path,  posts.description,posts.created_at, users.first_name,users.last_name, users.id as userId
+       FROM \`images\`
+        JOIN \`posts\`
+          ON images.post_id = posts.id
+	      JOIN \`users\` 
+		      ON users.id=posts.user_id
+        WHERE 1=1
+          ${dateWhereClause}
+        LIMIT ${limit}
+        OFFSET ${offset} `,
+      { plain: false, type: QueryTypes.SELECT }
+    );
+    if (Object.keys(rows).length === 0) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Not found image!',
+      };
+      throw err;
+    }
+    return rows;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
