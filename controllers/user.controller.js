@@ -161,10 +161,7 @@ exports.searchUsers = async (req, res) => {
   }
 };
 
-// do tuan thanh
 //search image
-
-//
 exports.getAllImage = async (req, res) => {
   try {
     let createdBy = req.query.createdBy;
@@ -177,7 +174,7 @@ exports.getAllImage = async (req, res) => {
     let result;
     if (createdBy != null || following != null) {
       result = await userService.getAllImage(
-        req.email,
+        req.idUser,
         createdBy,
         following,
         limit,
