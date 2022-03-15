@@ -3,7 +3,7 @@ const PostReact      = require("../models/post_react.model");
 const Comment        = require("../models/comment.model");
 const CommentReact   = require("../models/comment_react.model");
 const Image          = require("../models/image.model");
-const db             = require("../util/db");
+const jwt            = require("jsonwebtoken");
 const { QueryTypes } = require("sequelize");
 
 

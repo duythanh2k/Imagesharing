@@ -1,10 +1,10 @@
 const User               = require("../models/user.model");
 const Follower           = require("../models/follower.model");
-const db                 = require("../util/db");
 const jwt                = require("jsonwebtoken");
 const moment             = require("moment");
 const bcrypt             = require("bcryptjs");
 const { QueryTypes, Op } = require("sequelize");
+const date               = require('date-and-time');
 
 
 //Đăng nhập
@@ -194,7 +194,7 @@ exports.follow = async (follower_id, followed_id) => {
       // Condition of not following self
       let err = {
         code: "INVALID_INPUT",
-        message: "Can not following self!",
+        message: "Can not follow self!",
       };
       throw err;
     }
