@@ -1,47 +1,12 @@
-const User = require('../models/user.model');
-const Posts = require('../models/post.model');
-const Images = require('../models/image.model');
-const Follower = require('../models/follower.model');
-const db = require('../util/db');
-const jwt = require('jsonwebtoken');
-const moment = require('moment');
-const bcrypt = require('bcryptjs');
-const { QueryTypes, Op } = require('sequelize');
-const { request } = require('express');
-const date = require('date-and-time');
+const User               = require("../models/user.model");
+const Follower           = require("../models/follower.model");
+const jwt                = require("jsonwebtoken");
+const moment             = require("moment");
+const bcrypt             = require("bcryptjs");
+const { QueryTypes, Op } = require("sequelize");
+const db                 = require("../util/db");
+const date               = require('date-and-time');
 
-//Kiểm tra chuỗi nhập vào có rỗng hay không
-const isEmpty = function (value) {
-  if (!value || 0 === value.length) {
-    return true;
-  }
-};
-
-//Kiểm tra có phải ngày tháng hay không
-const isDate = function (value) {
-  var formats = [
-    moment.ISO_8601,
-    'MM/DD/YYYY  :)  HH*mm*ss',
-    'YYYY/MM/DD',
-    'MM/DD/YYYY',
-    'YYYY-MM-DD',
-    'MM-DD-YYYY',
-  ];
-  if (moment(value, formats, true).isValid()) {
-    return true;
-  }
-};
-
-//Kiểm tra có phải email hay không
-const isEmail = function (value) {
-  let filter =
-    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-  if (filter.test(value)) {
-    return true;
-  } else {
-    return false;
-  }
-};
 
 //Đăng nhập
 exports.signUp = async function (user) {
@@ -233,13 +198,19 @@ exports.follow = async (follower_id, followed_id) => {
     );
     if (Number(followed_id) === Number(follower_id)) {
       // Condition of not following self
-      message = 'Cannot follow self!';
-      return message;
+      let err = {
+        code: "INVALID_INPUT",
+        message: "Can not follow self!",
+      };
+      throw err;
     }
     if (!isUserExists) {
       // Check if there is an user in database
-      message = 'User does not exist!';
-      return message;
+      let err = {
+        code: "NOT_FOUND",
+        message: "User not found!",
+      };
+      throw err;
     }
     if (alreadyFollowed) {
       let message = 'Unfollowed!';
@@ -295,64 +266,6 @@ exports.searchUsers = async (requests) => {
   }
 };
 
-// Functions check existence
-const checkUserExistence = async (id) => {
-  //Check condition where the id exists
-  try {
-    if (!isNaN(id)) {
-      const user = await User.findByPk(id);
-      return user;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-const checkFollowerExistence = async (follower_id, followed_id) => {
-  //Check condition where the id exists
-  try {
-    if (!isNaN(follower_id) && !isNaN(followed_id)) {
-      const like = await Follower.findOne({
-        where: {
-          follower_id,
-          followed_id,
-        },
-      });
-      return like;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-
-//Conditions for search query
-const searchQuery = async (requests) => {
-  const findBy = [];
-  // If there is a query
-  // then check if it is a email or not
-  // if it is email type
-  //    search by email
-  // otherwise
-  //    search by firstname/lastname
-  if (!isEmail(requests)) {
-    findBy.push(
-      {
-        first_name: {
-          [Op.like]: '%' + requests + '%',
-        },
-      },
-      {
-        last_name: {
-          [Op.like]: '%' + requests + '%',
-        },
-      }
-    );
-  } else {
-    findBy.push({
-      email: requests,
-    });
-  }
-  return findBy;
-};
 
 // Do Tuan Thanh
 // search image
@@ -525,4 +438,97 @@ exports.getImageByDate = async (startDate, endDate, limit, offset) => {
     console.log(error);
     throw error;
   }
+};
+
+
+//Kiểm tra chuỗi nhập vào có rỗng hay không
+const isEmpty = function (value) {
+  if (!value || 0 === value.length) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải ngày tháng hay không
+const isDate = function (value) {
+  var formats = [
+    moment.ISO_8601,
+    "MM/DD/YYYY  :)  HH*mm*ss",
+    "YYYY/MM/DD",
+    "MM/DD/YYYY",
+    "YYYY-MM-DD",
+    "MM-DD-YYYY",
+  ];
+  if (moment(value, formats, true).isValid()) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải email hay không
+const isEmail = function (value) {
+  let filter =
+    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  if (filter.test(value)) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+// Functions check existence
+const checkUserExistence = async (id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(id)) {
+      const user = await User.findByPk(id);
+      return user;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+const checkFollowerExistence = async (follower_id, followed_id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(follower_id) && !isNaN(followed_id)) {
+      const like = await Follower.findOne({
+        where: {
+          follower_id,
+          followed_id,
+        },
+      });
+      return like;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+//Conditions for search query
+const searchQuery = async (requests) => {
+  const findBy = [];
+  // If there is a query
+  // then check if it is a email or not
+  // if it is email type
+  //    search by email
+  // otherwise
+  //    search by firstname/lastname
+  if (!isEmail(requests)) {
+    findBy.push(
+      {
+        first_name: {
+          [Op.like]: '%' + requests + '%',
+        },
+      },
+      {
+        last_name: {
+          [Op.like]: '%' + requests + '%',
+        },
+      }
+    );
+  } else {
+    findBy.push({
+      email: requests,
+    });
+  }
+  return findBy;
 };
