@@ -356,7 +356,7 @@ const searchQuery = async (requests) => {
 
 // Do Tuan Thanh
 // search image
-exports.getAllImage = async (email, createdBy, following, limit, offset) => {
+exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
   try {
     //limit, offset
     let pageAsNumber = parseInt(offset);
@@ -371,19 +371,18 @@ exports.getAllImage = async (email, createdBy, following, limit, offset) => {
       limit = sizeAsNumber;
     }
 
-    // query: lấy tất cả ảnh của người tạo
+    // query: lấy tất cả ảnh của người tạo theo id
     let createdByWhereClause = '';
     if (!isNaN(createdBy)) {
       createdByWhereClause = `AND posts.user_id = ${createdBy}`;
     }
 
     //query: lấy tất cả ảnh theo following
-    const user = await User.findOne({ email: email });
     let followingWhereClause = '';
     if (following == 'true') {
       followingWhereClause = `AND posts.user_id IN 
                               (SELECT followed_id FROM \`followers\` 
-                                WHERE follower_id = ${user.id})`;
+                                WHERE follower_id = ${idUser})`;
     }
     //
     const rows = await db.query(
