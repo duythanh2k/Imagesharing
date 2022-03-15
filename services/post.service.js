@@ -4,7 +4,6 @@ const Comment = require("../models/comment.model");
 const CommentReact = require("../models/comment_react.model");
 const Image = require("../models/image.model");
 const jwt = require("jsonwebtoken");
-const db = require("../util/db");
 const { Sequelize,QueryTypes } = require("sequelize");
 const Post_react = require("../models/post_react.model");
 require("dotenv").config();
@@ -382,8 +381,9 @@ exports.uploadPost = async (description, image, id) => {
     };
     let post = await Post.create(dataPost);
     let post_id = post.dataValues.id;
+    console.log(post_id);
     for (var i = 0; i < arrayImage.length; i++) {
-      await Images.create({
+      await Image.create({
         caption: arrayImage[i]["caption"],
         path: arrayImage[i]["path"],
         post_id: post_id,       
@@ -437,7 +437,7 @@ exports.likePost = async (post_id, user_id) => {
 };
 
 exports.commentPost = async (cmt, postId, userId) => {
-  let isPostExist = await checkPostExist(post_id);
+  let isPostExist = await checkPostExist(postId);
   if (!isPostExist) {
     throw new Error("Post is not exist");
   }
@@ -449,7 +449,7 @@ exports.commentPost = async (cmt, postId, userId) => {
       created_at: Date.now(),
       parent_cmt_id: cmt.parentCommentId,
       user_id: userId,
-      post_id: postId,
+      post_id : postId,
     };
     await Comment.create(data);
   }
@@ -477,13 +477,15 @@ const checkEmpty = async (value) => {
 
 exports.listPost = async (user_id, sort, paging) => {
   try {
-    let limit = Number.parseInt(paging['limit']);
-    let offset = Number.parseInt(paging['offset']);
-    if (Number.isNaN(limit) && limit < 1) {
-      throw new Error('Invalid input');
-    }
-    if (Number.isNaN(offset) && offset < 1) {
-      throw new Error('Invalid input');
+    let limit = paging['limit'];
+    let offset = paging['offset'];
+    if (
+      isEmpty(limit) ||
+      isEmpty(offset) ||
+      isEmpty(sort)
+    ) {
+          limit = 2;
+          offset= 0;
     }
     let filter = [];
     if (sort === "-created") {
@@ -492,20 +494,20 @@ exports.listPost = async (user_id, sort, paging) => {
     if (!checkPostExist) {
       throw new Error("Post is not exist");
     } else {
-      let posts = Post.findAll({
-        where: {
-          user_id: user_id,
+      let posts = await Post.findAll({
+        where : {
+          user_id: user_id
         },
+        attributes:['description','created_at'],
         order: filter,
-        include: [
-          {
-            model: Images,
-            required: true,
-          },
-        ],
-        limit : limit,
-        offset : offset,
-      });
+          include:
+          [{  model: Image,
+              attributes:['caption','path'],
+              required:true,
+          }],
+          limit: limit,
+          offset: offset
+           });
       return posts;
     }
   } catch (err) {
@@ -550,9 +552,10 @@ exports.updatePost = async (post_id, description, image,user_id) => {
         path: path,
       });
     }
+    console.log(post_id);
     for (var i = 0; i < arrayImage.length; i++) {
-        await Images.create({
-        caption: arrayImage["caption"],
+        await Image.create({
+        caption: arrayImage[i]["caption"],
         path: arrayImage[i]["path"],
         post_id: post_id,
       });
