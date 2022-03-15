@@ -432,11 +432,11 @@ exports.getImageBy = async (search, limit, offset) => {
 
     var searchWhereClause = '';
     if (search) {
-      searchWhereClause = ` and images.caption like '%${search}%' or users.first_name like '${search}' or users.last_name like '${search}'`;
+      searchWhereClause = ` and images.caption like '%${search}%' or CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%'`;
     }
 
     const rows = await db.query(
-      `SELECT  images.caption,images.path,  posts.description,posts.created_at, users.first_name,users.last_name, users.id as userId
+      `SELECT  images.caption,images.path,  posts.description,posts.created_at, CONCAT(users.first_name, ' ', users.last_name) as userPost, users.id as userId
        FROM \`images\`
         JOIN \`posts\`
           ON images.post_id = posts.id
