@@ -4,7 +4,7 @@ const Comment        = require("../models/comment.model");
 const CommentReact   = require("../models/comment_react.model");
 const Image          = require("../models/image.model");
 const jwt            = require("jsonwebtoken");
-const { QueryTypes } = require("sequelize");
+const { Sequelize, QueryTypes } = require("sequelize");
 
 
 //Lấy tất cả các ảnh của user login
