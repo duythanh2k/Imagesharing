@@ -2,81 +2,77 @@ const postService = require("../services/post.service");
 
 //Lấy tất cả các ảnh của cá nhân
 exports.getAllImageUser = async (req, res, next) => {
-    try {
-      let idUser = req.idUser;
-      let requests = req.query;
-      let result = await postService.getAllImageUser(idUser, requests);
-      return res.json({
-        status: "Success",
-        code: null,
-        message: null,
-        data: result,
-      });
-    } catch (err) {
-      res.status(400).json({
-        status: "Error",
-        code: err.code,
-        message: err.message,
-        data: null,
-      });
-    }
-  };
-  
+  try {
+    let idUser = req.idUser;
+    let requests = req.query;
+    let result = await postService.getAllImageUser(idUser, requests);
+    return res.json({
+      status: "Success",
+      code: null,
+      message: null,
+      data: result,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: "Error",
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+};
+
 //Cập nhật caption của ảnh
 exports.updateCapImage = async (req, res, next) => {
-    try {
-      let idImage = req.params.id;
-      let newcapIamge = req.body.caption;
-      let idUser = req.idUser;
-      await postService.updateCapImage(idImage,idUser, newcapIamge);
-      return res.json({
-        status: "Success",
-        code: null,
-        message: null,
-        data: null,
-      });
-    } catch (err) {
-      res.status(400).json({
-        status: "Error",
-        code: err.code,
-        message: err.message,
-        data: null,
-      });
-    }
-  };
-  
+  try {
+    let idImage = req.params.id;
+    let newcapIamge = req.body.caption;
+    let idUser = req.idUser;
+    await postService.updateCapImage(idImage, idUser, newcapIamge);
+    return res.json({
+      status: "Success",
+      code: null,
+      message: null,
+      data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: "Error",
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+};
+
 //Xóa ảnh
 exports.deleteImage = async (req, res, next) => {
-    try {
-      let idImage = req.params.id;
-      let idUser = req.idUser;
-      await postService.deleteImage(idUser,idImage);
-      return res.json({
-        status: "Success",
-        code: null,
-        message: null,
-        data: null,
-      });
-    } catch (err) {
-      res.status(400).json({
-        status: "Error",
-        code: err.code,
-        message: err.message,
-        data: null,
-      });
-    }
-  };
-  
+  try {
+    let idImage = req.params.id;
+    let idUser = req.idUser;
+    await postService.deleteImage(idUser, idImage);
+    return res.json({
+      status: "Success",
+      code: null,
+      message: null,
+      data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: "Error",
+      code: err.code,
+      message: err.message,
+      data: null,
+    });
+  }
+};
 
 exports.getAllCmtDesc = async (req, res) => {
   try {
     let postId = req.params.id;
     let requests = req.query;
-    let results = await postService.getAllCmtDesc(
-      postId,
-      requests
-    );
-    
+    let results = await postService.getAllCmtDesc(postId, requests);
+
     return res.json({
       status: "Success",
       code: null,
@@ -98,11 +94,7 @@ exports.deleteComment = async (req, res) => {
   const comment_id = req.params.comment_id;
   const user_id = req.idUser;
   try {
-    let results = await postService.deleteComment(
-      user_id,
-      post_id, 
-      comment_id
-    );
+    let results = await postService.deleteComment(user_id, post_id, comment_id);
 
     return res.json({
       status: "Success",
@@ -122,7 +114,10 @@ exports.deleteComment = async (req, res) => {
 
 exports.likeComment = async (req, res) => {
   try {
-    let results = await postService.likeComment(req.idUser, req.params.comment_id);
+    let results = await postService.likeComment(
+      req.idUser,
+      req.params.comment_id
+    );
     return res.json({
       status: "Success",
       code: null,
@@ -141,13 +136,12 @@ exports.likeComment = async (req, res) => {
 exports.uploadImage = async (req, res, next) => {
   try {
     if (req.files.length > 0) {
-      productPictures = req.files.map((file) => {
-        return file['path'];
+      pictures = req.files.map((file) => {
+        return file["path"];
       });
     }
-    console.log(productPictures);
     let numberImage = Number.parseInt(req.query.numberOfImage);
-    let result = await postService.uploadImage(numberImage,productPictures);
+    let result = await postService.uploadImage(numberImage, pictures);
     res.status(200).json({
       status: "Success",
       code: null,
@@ -163,17 +157,16 @@ exports.uploadImage = async (req, res, next) => {
     });
   }
 };
+
 exports.uploadPost = async (req, res, next) => {
   try {
     const description = req.body.description;
-    const image = [
-        {
-          caption: req.body.caption,
-          uploadToken: req.body.token,
-        },
-      ]; 
+    const image = [];
+    image.push({
+      caption: req.body.caption,
+      uploadToken: req.body.token,
+    });
     let result = await postService.uploadPost(description, image, req.idUser);
-
     res.status(200).json({
       status: "Success",
       code: null,
@@ -209,6 +202,7 @@ exports.likePost = async (req, res, next) => {
     });
   }
 };
+
 exports.commentPost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -216,7 +210,7 @@ exports.commentPost = async (req, res) => {
       comment: req.body.comment,
       parentComment: Number.parseInt(req.body.parentCommentId),
     };
-    let result =await postService.commentPost(cmt, postId, req.idUser);
+    let result = await postService.commentPost(cmt, postId, req.idUser);
     res.status(200).json({
       status: "success",
       code: null,
@@ -236,7 +230,11 @@ exports.listPost = async (req, res, next) => {
   try {
     const idUser = req.params.id;
     const sort = req.query.sort;
-    let result = await postService.listPost(idUser, sort);
+    const paging = {
+      limit: req.query.limit,
+      offset: req.query.offset,
+    };
+    let result = await postService.listPost(idUser, sort, paging);
     res.status(200).json({
       status: "success",
       code: null,
@@ -257,13 +255,17 @@ exports.updatePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
     const description = req.body.description;
-    const image = [
-      {
-        caption: req.body.caption,
-        uploadToken: req.body.token,
-      },
-    ];
-    let result = await postService.updatePost(postId ,description,image, req.idUser);
+    const image = [];
+    image.push({
+      caption: req.body.caption,
+      uploadToken: req.body.token,
+    });
+    let result = await postService.updatePost(
+      postId,
+      description,
+      image,
+      req.idUser
+    );
     res.status(200).json({
       status: "success",
       code: null,
@@ -296,6 +298,6 @@ exports.deletePost = async (req, res, next) => {
       code: error.code,
       message: error.message,
       data: null,
-    })
-  }};
-
+    });
+  }
+};

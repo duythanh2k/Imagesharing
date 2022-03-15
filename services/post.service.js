@@ -353,6 +353,7 @@ const checkCommentOwnership = async (id, user_id) => {
   }
 };
 
+
 exports.uploadImage = async (numberImage, image) => {
   if (typeof numberImage !== "number")
     throw new Error("ERROR_CODE.INVALID_INPUT");
@@ -368,22 +369,24 @@ exports.uploadImage = async (numberImage, image) => {
   return arrayImage;
 };
 
+
 exports.uploadPost = async (description, image, id) => {
   try {
     if (typeof description !== "string")
       throw new Error("ERROR_CODE.INVALID_INPUT");
     if (!checkEmpty(description)) throw new Error("ERROR_CODE.INVALID_INPUT");
     let arrayImage = [];
-    for (var i = 0; i < image.length; i++) {
+    for (var i = 0; i < image[0].uploadToken.length; i++) {
       let path = jwt.verify(
-        image[i]["uploadToken"],
+        image[0].uploadToken[i],
         process.env.ACCESS_TOKEN_SECRET
       );
       arrayImage.push({
-        caption: image[i]["caption"],
+        caption: image[0]["caption"][i],
         path: path,
       });
     }
+    console.log(arrayImage);
     const dataPost = {
       description: description,
       created_at: Date.now(),
@@ -391,23 +394,16 @@ exports.uploadPost = async (description, image, id) => {
     };
     let post = await Post.create(dataPost);
     let post_id = post.dataValues.id;
-    const dataImage = [
-      {
-        caption: arrayImage["caption"],
-        path: arrayImage[0]["path"],
-        post_id: post_id,
-      },
-    ];
     for (var i = 0; i < arrayImage.length; i++) {
       await Images.create({
-        caption: arrayImage["caption"],
+        caption: arrayImage[i]["caption"],
         path: arrayImage[i]["path"],
         post_id: post_id,       
       });
-    }
+    };
     const result = {
       description: description,
-      image: dataImage,
+      image: arrayImage,
     };
     return result;
   } catch (error) {
@@ -477,7 +473,7 @@ const checkPostExist = async (id) => {
       const post = await Post.findByPk(id);
       return post;
     }
-    return true;
+    return false;
   } catch (error) {
     throw error;
   }
@@ -489,8 +485,18 @@ const checkEmpty = async (value) => {
   }
   return false;
 };
-exports.listPost = async (user_id, sort) => {
+
+
+exports.listPost = async (user_id, sort, paging) => {
   try {
+    let limit = Number.parseInt(paging['limit']);
+    let offset = Number.parseInt(paging['offset']);
+    if (Number.isNaN(limit) && limit < 1) {
+      throw new Error('Invalid input');
+    }
+    if (Number.isNaN(offset) && offset < 1) {
+      throw new Error('Invalid input');
+    }
     let filter = [];
     if (sort === "-created") {
       filter.push(["created_at", "Desc"]);
@@ -509,6 +515,8 @@ exports.listPost = async (user_id, sort) => {
             required: true,
           },
         ],
+        limit : limit,
+        offset : offset,
       });
       return posts;
     }
@@ -523,7 +531,6 @@ exports.updatePost = async (post_id, description, image,user_id) => {
     if (!isPostExist) {
       throw new Error("Post is not exist");
     }
-    console.log(image);
     if (!description || typeof description !== "string")
       throw new Error('ERROR_CODE.INVALID_INPUT');
     if (!checkEmpty(post_id) || !checkEmpty(description)) {
@@ -543,15 +550,15 @@ exports.updatePost = async (post_id, description, image,user_id) => {
       throw err;
     }
     //check if dont update image
-    if(image[0]['uploadToken']!==undefined){``
+    if(image[0]['uploadToken'][0]!==undefined){``
     let arrayImage = [];
-    for (var i = 0; i < image.length; i++) {    
+    for (var i = 0; i < image[0].uploadToken.length; i++) {    
       let path = jwt.verify(
-        image[i]["uploadToken"],
+        image[0].uploadToken[i],
         process.env.ACCESS_TOKEN_SECRET
       );
       arrayImage.push({
-        caption: image[i]["caption"],
+        caption: image[0].caption[i],
         path: path,
       });
     }
