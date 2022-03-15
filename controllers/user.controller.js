@@ -164,43 +164,37 @@ exports.searchUsers = async (req, res) => {
 // do tuan thanh
 //search image
 
-exports.getImageBy = async (req, res) => {
-  try {
-    let result = await userService.getImageBy(
-      req.query.caption,
-      req.query.limit,
-      req.query.offset,
-      req.query.firstName,
-      req.query.lastName,
-      req.query.startDate,
-      req.query.endDate
-    );
-    return res.json({
-      status: 'Success',
-      code: null,
-      message: null,
-      data: result,
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'Error',
-      code: err.code,
-      message: err.message,
-      data: null,
-    });
-  }
-};
-
 //
 exports.getAllImage = async (req, res) => {
   try {
-    let result = await userService.getAllImage(
-      req.email,
-      req.query.createdBy,
-      req.query.following,
-      req.query.limit,
-      req.query.offset
-    );
+    let createdBy = req.query.createdBy;
+    let following = req.query.following;
+    let search = req.query.search;
+    let startDate = req.query.startDate;
+    let endDate = req.query.endDate;
+    let limit = req.query.limit;
+    let offset = req.query.offset;
+    let result;
+    if (createdBy != null || following != null) {
+      result = await userService.getAllImage(
+        req.email,
+        createdBy,
+        following,
+        limit,
+        offset
+      );
+    }
+    if (search != null) {
+      result = await userService.getImageBy(search, limit, offset);
+    }
+    if (startDate != null && endDate != null) {
+      result = await userService.getImageByDate(
+        startDate,
+        endDate,
+        limit,
+        offset
+      );
+    }
     return res.json({
       status: 'Success',
       code: null,
@@ -216,3 +210,27 @@ exports.getAllImage = async (req, res) => {
     });
   }
 };
+// exports.getImageBy = async (req, res) => {
+//   try {
+//     let result = await userService.getImageBy(
+//       req.query.search,
+//       req.query.startDate,
+//       req.query.endDate,
+//       req.query.limit,
+//       req.query.offset
+//     );
+//     return res.json({
+//       status: 'Success',
+//       code: null,
+//       message: null,
+//       data: result,
+//     });
+//   } catch (err) {
+//     res.status(400).json({
+//       status: 'Error',
+//       code: err.code,
+//       message: err.message,
+//       data: null,
+//     });
+//   }
+// };

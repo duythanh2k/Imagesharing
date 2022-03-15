@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const { QueryTypes, Op } = require('sequelize');
+const { request } = require('express');
+const date = require('date-and-time');
 
 //Kiểm tra chuỗi nhập vào có rỗng hay không
 const isEmpty = function (value) {
@@ -356,9 +358,9 @@ const searchQuery = async (requests) => {
 // search image
 exports.getAllImage = async (email, createdBy, following, limit, offset) => {
   try {
+    //limit, offset
     let pageAsNumber = parseInt(offset);
     let sizeAsNumber = parseInt(limit);
-
     offset = 0;
     if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
       offset = pageAsNumber;
@@ -369,20 +371,21 @@ exports.getAllImage = async (email, createdBy, following, limit, offset) => {
       limit = sizeAsNumber;
     }
 
-    const user = await User.findOne({ email: email });
-
+    // query: lấy tất cả ảnh của người tạo
     let createdByWhereClause = '';
     if (!isNaN(createdBy)) {
       createdByWhereClause = `AND posts.user_id = ${createdBy}`;
     }
 
+    //query: lấy tất cả ảnh theo following
+    const user = await User.findOne({ email: email });
     let followingWhereClause = '';
     if (following == 'true') {
       followingWhereClause = `AND posts.user_id IN 
                               (SELECT followed_id FROM \`followers\` 
                                 WHERE follower_id = ${user.id})`;
     }
-
+    //
     const rows = await db.query(
       `SELECT images.caption,  images.path, posts.description,posts.created_at, 
         users.first_name , users.last_name,users.id as userId
@@ -394,41 +397,27 @@ exports.getAllImage = async (email, createdBy, following, limit, offset) => {
         WHERE 1 = 1
         ${followingWhereClause}
         ${createdByWhereClause}
+       
       LIMIT ${limit}
       OFFSET ${offset} `,
       { plain: false, type: QueryTypes.SELECT }
     );
+    if (Object.keys(rows).length === 0) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Not found image!',
+      };
+      throw err;
+    }
 
-    // const totalRows = await db.query(
-    //   `SELECT COUNT(images.id) as \`record\`
-    //     FROM \`images\`
-    //       JOIN \`posts\`
-    //         ON images.post_id = posts.id
-    //       WHERE 1 = 1
-    //       ${followingWhereClause}
-    //       ${createdByWhereClause} `,
-    //   { type: QueryTypes.SELECT }
-    // );
-
-    return (data = {
-      content: rows,
-      //  / total_record: totalRows,
-    });
+    return rows;
   } catch (error) {
     console.log(error);
     throw error;
   }
 };
 
-exports.getImageBy = async (
-  caption,
-  limit,
-  offset,
-  firstName,
-  lastName,
-  startDate,
-  endDate
-) => {
+exports.getImageBy = async (search, limit, offset) => {
   try {
     let pageAsNumber = Number.parseInt(offset);
     let sizeAsNumber = Number.parseInt(limit);
@@ -441,24 +430,9 @@ exports.getImageBy = async (
       limit = sizeAsNumber;
     }
 
-    let replacementSD = `'${startDate}'`;
-    let replacementED = `'${endDate}'`;
-    var dateWhereClause = '';
-    if (startDate && endDate) {
-      dateWhereClause = `and posts.created_at between ${replacementSD} and ${replacementED}`;
-    }
-
-    var captionWhereClause = '';
-    let replacementCaption = `'%${caption}%'`;
-    if (caption) {
-      captionWhereClause = ` and images.caption like ${replacementCaption}`;
-    }
-
-    var userNameWhereClause = '';
-    let replacementLn = `'${lastName}'`;
-    let replacementFn = `'${firstName}'`;
-    if (firstName && lastName) {
-      userNameWhereClause = ` and users.first_name like ${replacementFn} and users.last_name like ${replacementLn}`;
+    var searchWhereClause = '';
+    if (search) {
+      searchWhereClause = ` and images.caption like '%${search}%' or users.first_name like '${search}' or users.last_name like '${search}'`;
     }
 
     const rows = await db.query(
@@ -469,32 +443,85 @@ exports.getImageBy = async (
 	      JOIN \`users\` 
 		      ON users.id=posts.user_id
         WHERE 1=1 
-          ${captionWhereClause} 
-          ${userNameWhereClause}
+          ${searchWhereClause} 
+      
+        LIMIT ${limit}
+        OFFSET ${offset} `,
+      { plain: false, type: QueryTypes.SELECT }
+    );
+    if (Object.keys(rows).length === 0) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Not found image!',
+      };
+      throw err;
+    }
+    return rows;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+exports.getImageByDate = async (startDate, endDate, limit, offset) => {
+  try {
+    let pageAsNumber = Number.parseInt(offset);
+    let sizeAsNumber = Number.parseInt(limit);
+    offset = 0;
+    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+      offset = pageAsNumber;
+    }
+    limit = 2;
+    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
+      limit = sizeAsNumber;
+    }
+
+    //search date
+    if (!isDate(startDate) || !isDate(endDate)) {
+      let err = {
+        code: 'INCORRECT_DATATYPE',
+        message: 'Input date time is incorrect datatype',
+      };
+      throw err;
+    }
+
+    var fdate = date.format(new Date(startDate), 'YYYY/MM/DD HH:mm:ss');
+    var edate = date.format(new Date(endDate), 'YYYY/MM/DD HH:mm:ss');
+
+    if (fdate.valueOf() > edate.valueOf()) {
+      let err = {
+        code: 'INVALID_INPUT',
+        message: 'End date must be greater than or equal to start date',
+      };
+      throw err;
+    }
+
+    var dateWhereClause = '';
+    if (startDate && endDate) {
+      dateWhereClause = `and posts.created_at between '${fdate}' and '${edate}'`;
+    }
+
+    const rows = await db.query(
+      `SELECT  images.caption,images.path,  posts.description,posts.created_at, users.first_name,users.last_name, users.id as userId
+       FROM \`images\`
+        JOIN \`posts\`
+          ON images.post_id = posts.id
+	      JOIN \`users\` 
+		      ON users.id=posts.user_id
+        WHERE 1=1
           ${dateWhereClause}
         LIMIT ${limit}
         OFFSET ${offset} `,
       { plain: false, type: QueryTypes.SELECT }
     );
-
-    // const totalRows = await db.query(
-    //   `SELECT COUNT(images.id) as \`record\`
-    //   FROM \`images\`
-    //     JOIN \`posts\`
-    //       ON images.post_id = posts.id
-    //     JOIN \`users\`
-    //       ON users.id=posts.user_id
-    //     WHERE 1=1
-    //       ${captionWhereClause}
-    //       ${userNameWhereClause}
-    //       ${dateWhereClause}
-    //  `,
-    //   { plain: false, type: QueryTypes.SELECT }
-    // );
-    return (data = {
-      content: rows,
-      //total_Pages: totalRows,
-    });
+    if (Object.keys(rows).length === 0) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Not found image!',
+      };
+      throw err;
+    }
+    return rows;
   } catch (error) {
     console.log(error);
     throw error;

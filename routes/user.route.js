@@ -31,10 +31,10 @@ router.get(
   authenMiddleware.isAuth,
   userController.getAllImage
 );
-router.get(
-  '/users/images-search',
-  authenMiddleware.isAuth,
-  userController.getImageBy
-);
+// router.get(
+//   '/users/images-search',
+//   authenMiddleware.isAuth,
+//   userController.getImageBy
+// );
 
 module.exports = router;
