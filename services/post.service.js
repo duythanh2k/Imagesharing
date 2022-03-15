@@ -1,13 +1,10 @@
-const User = require("../models/user.model");
 const Post = require("../models/post.model");
 const Comment = require("../models/comment.model");
 const CommentReact = require("../models/comment_react.model");
 const Image = require("../models/image.model");
 const jwt = require("jsonwebtoken");
-const db = require("../util/db");
 const { Sequelize,QueryTypes } = require("sequelize");
 const Post_react = require("../models/post_react.model");
-require("dotenv").config();
 
 //Kiểm tra chuỗi nhập vào có rỗng hay không
 const isEmpty = function (value) {
@@ -383,7 +380,7 @@ exports.uploadPost = async (description, image, id) => {
     let post = await Post.create(dataPost);
     let post_id = post.dataValues.id;
     for (var i = 0; i < arrayImage.length; i++) {
-      await Images.create({
+      await Image.create({
         caption: arrayImage[i]["caption"],
         path: arrayImage[i]["path"],
         post_id: post_id,       
@@ -551,7 +548,7 @@ exports.updatePost = async (post_id, description, image,user_id) => {
       });
     }
     for (var i = 0; i < arrayImage.length; i++) {
-        await Images.create({
+        await Image.create({
         caption: arrayImage["caption"],
         path: arrayImage[i]["path"],
         post_id: post_id,

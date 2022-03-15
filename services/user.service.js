@@ -1,13 +1,10 @@
 const User = require('../models/user.model');
-const Posts = require('../models/post.model');
-const Images = require('../models/image.model');
 const Follower = require('../models/follower.model');
 const db = require('../util/db');
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const { QueryTypes, Op } = require('sequelize');
-const { request } = require('express');
 const date = require('date-and-time');
 
 //Kiểm tra chuỗi nhập vào có rỗng hay không

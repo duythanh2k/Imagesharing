@@ -1,7 +1,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 require("dotenv").config;
-
+const swaggerUI=require('swagger-ui-express');
+const YAML=require('yamljs');
+const swaggerDoc = YAML.load("./swagger-output.yaml");
 const app = express();
 app.use(express.json());
 app.use(
@@ -16,7 +18,7 @@ const posts=require('./routes/post.route')
 //Using route
 app.use("/posts", posts);
 app.use("/", users);
-
+app.use('/',swaggerUI.serve,swaggerUI.setup(swaggerDoc));
 
 //PORT set up
 const PORT = process.env.PORT || 3000;
