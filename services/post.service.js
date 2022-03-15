@@ -145,7 +145,7 @@ exports.getAllImageUser = async (idUser, requests) => {
   
 
 // Get all comments of a post sort by timestamp
-exports.getAllCmtDesc = async (id, requests) => {
+exports.getAllCmtDesc = async (post_id, requests) => {
   try {
     const ordered = [];
     // query for sort comment by descend timestamp
@@ -169,7 +169,7 @@ exports.getAllCmtDesc = async (id, requests) => {
       // find all comments of current post and sort comments by lateset timestamp
     let comment = await Comment.findAll({
       where: {
-        post_id: id,
+        post_id,
       },
       // Order condition
       order: ordered,
@@ -188,6 +188,7 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
     let isPostExists = await checkPostExistence(post_id);
     let isCommentExists = await checkCommentExistence(comment_id);
     let isOwn = await checkCommentOwnership(comment_id, user_id);
+    let isCommentOfPost = await checkCommentExistsInPost(comment_id, post_id);
     
     // Check if there is a post in database
     // then Check if there is a comment in database
@@ -207,6 +208,13 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
       };
       throw err;
     }
+    if (!isCommentOfPost) {
+      let err = {
+        code: "NOT_FOUND",
+        message: "Comment does not exists in this post!",
+      };
+      throw err;
+    }
     if (!isOwn) {
       let err = {
         code: "NOT_PERMISSON",
@@ -217,7 +225,7 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
     await Comment.destroy({
       where: {
         id: comment_id,
-        post_id: post_id,
+        post_id,
       },
     });
     return;
@@ -319,6 +327,21 @@ const checkCommentExistence = async (id) => {
     throw error;
   }
 };
+const checkCommentExistsInPost = async (id, post_id) => {
+  try {
+    if (!isNaN(id) && !isNaN(post_id)) {
+      const comment = await Comment.findOne({
+        where: {
+          id,
+          post_id
+        }
+      });
+      return comment;
+    }
+  } catch (err) {
+    throw err;
+  }
+}
 const checkCommentReactExistence = async (user_id, comment_id) => {
   //Check condition where the id exists
   try {
