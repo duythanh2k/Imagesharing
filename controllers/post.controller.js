@@ -76,8 +76,8 @@ exports.getAllCmtDesc = async (req, res) => {
     return res.json({
       status: "Success",
       code: null,
-      message: results.message,
-      data: results.comment,
+      message: null,
+      data: results,
     });
   } catch (err) {
     res.status(400).json({
@@ -94,12 +94,16 @@ exports.deleteComment = async (req, res) => {
   const comment_id = req.params.comment_id;
   const user_id = req.idUser;
   try {
-    let results = await postService.deleteComment(user_id, post_id, comment_id);
+    await postService.deleteComment(
+      user_id,
+      post_id, 
+      comment_id
+    );
 
     return res.json({
       status: "Success",
       code: null,
-      message: results,
+      message: null,
       data: null,
     });
   } catch (err) {
@@ -135,12 +139,14 @@ exports.likeComment = async (req, res) => {
 };
 exports.uploadImage = async (req, res, next) => {
   try {
-    if (req.files.length > 0) {
+    let numberImage = Number.parseInt(req.query.numberOfImage);
+    if (req.files.length === numberImage) {
       pictures = req.files.map((file) => {
         return file["path"];
       });
+    }else{
+      throw new Error('Please select image');
     }
-    let numberImage = Number.parseInt(req.query.numberOfImage);
     let result = await postService.uploadImage(numberImage, pictures);
     res.status(200).json({
       status: "Success",

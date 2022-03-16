@@ -1,60 +1,26 @@
 const Post = require('../models/post.model');
+const PostReact = require('../models/post_react.model');
 const Comment = require('../models/comment.model');
 const CommentReact = require('../models/comment_react.model');
 const Image = require('../models/image.model');
 const jwt = require('jsonwebtoken');
 const { Sequelize, QueryTypes } = require('sequelize');
-const Post_react = require('../models/post_react.model');
-require('dotenv').config();
 
-//Kiểm tra chuỗi nhập vào có rỗng hay không
-const isEmpty = function (value) {
-  if (!value || 0 === value.length) {
-    return true;
-  }
-};
-
-//Kiểm tra có phải ngày tháng hay không
-const isDate = function (value) {
-  var formats = [
-    moment.ISO_8601,
-    'MM/DD/YYYY  :)  HH*mm*ss',
-    'YYYY/MM/DD',
-    'MM/DD/YYYY',
-    'YYYY-MM-DD',
-    'MM-DD-YYYY',
-  ];
-  if (moment(value, formats, true).isValid()) {
-    return true;
-  }
-};
-
-//Kiểm tra có phải email hay không
-const isEmail = function (value) {
-  let filter =
-    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-  if (filter.test(value)) {
-    return true;
-  } else {
-    return false;
-  }
-};
 //Lấy tất cả các ảnh của user login
 exports.getAllImageUser = async (idUser, requests) => {
   try {
     //Kiểm tra dữ liệu nhập vào có trống hay không, nếu trống thì set default
-    if (
-      isEmpty(requests.limit) ||
-      isEmpty(requests.offset) ||
-      isEmpty(requests.sort_by) ||
-      isEmpty(requests.order_by)
-    ) {
-      requests = {
-        limit: 20,
-        offset: 0,
-        sort_by: 'created_at',
-        order_by: 'DESC',
-      };
+    if (isEmpty(requests.limit)) {
+      requests.limit = 20;
+    }
+    if (isEmpty(requests.offset)) {
+      requests.offset = 0;
+    }
+    if (isEmpty(requests.sort_by)) {
+      requests.sort_by = 'created_at';
+    }
+    if (isEmpty(requests.order_by)) {
+      requests.order_by = 'DESC';
     }
     let result = await Image.findAll({
       attributes: ['id', 'path', 'caption'],
@@ -167,10 +133,9 @@ exports.deleteImage = async (idUser, idImage) => {
 };
 
 // Get all comments of a post sort by timestamp
-exports.getAllCmtDesc = async (id, requests) => {
+exports.getAllCmtDesc = async (post_id, requests) => {
   try {
     const ordered = [];
-    let message, comment;
     // query for sort comment by descend timestamp
     if (requests.sort === '-created') {
       ordered.push(['created_at', 'DESC']);
@@ -183,22 +148,23 @@ exports.getAllCmtDesc = async (id, requests) => {
     let isPostExists = await checkPostExistence(id);
     // Check if there is a post in database
     if (!isPostExists) {
-      message = 'Post does not exist!';
-      comment = null;
-      return { message, comment };
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Post not found!',
+      };
+      throw err;
     }
-    message = null;
     // find all comments of current post and sort comments by lateset timestamp
-    comment = await Comment.findAll({
+    let comment = await Comment.findAll({
       where: {
-        post_id: id,
+        post_id,
       },
       // Order condition
       order: ordered,
       offset: Number(requests.offset),
       limit: Number(requests.limit),
     });
-    return { message, comment };
+    return comment;
   } catch (err) {
     throw err;
   }
@@ -206,36 +172,51 @@ exports.getAllCmtDesc = async (id, requests) => {
 
 // Delete a comments of a post
 exports.deleteComment = async (user_id, post_id, comment_id) => {
-  let message;
   try {
     let isPostExists = await checkPostExistence(post_id);
     let isCommentExists = await checkCommentExistence(comment_id);
     let isOwn = await checkCommentOwnership(comment_id, user_id);
+    let isCommentOfPost = await checkCommentExistsInPost(comment_id, post_id);
 
     // Check if there is a post in database
     // then Check if there is a comment in database
     // then Check if the current user own this comment
     // then Find a comment and delete
     if (!isPostExists) {
-      message = 'Post does not exist!';
-      return message;
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Post not found!',
+      };
+      throw err;
     }
     if (!isCommentExists) {
-      message = 'Comment does not exist!';
-      return message;
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Comment not found!',
+      };
+      throw err;
+    }
+    if (!isCommentOfPost) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Comment does not exists in this post!',
+      };
+      throw err;
     }
     if (!isOwn) {
-      message = "You don't have permission";
-      return message;
+      let err = {
+        code: 'NOT_PERMISSON',
+        message: "You don't have permission",
+      };
+      throw err;
     }
-    message = null;
     await Comment.destroy({
       where: {
         id: comment_id,
-        post_id: post_id,
+        post_id,
       },
     });
-    return message;
+    return;
   } catch (err) {
     throw err;
   }
@@ -248,8 +229,11 @@ exports.likeComment = async (user_id, comment_id) => {
     let message;
     // Check if there is a comment in database
     if (!isCommentExists) {
-      message = 'Comment does not exist!';
-      return message;
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Comment not found!',
+      };
+      throw err;
     }
     if (alreadyLiked) {
       message = 'Unliked!';
@@ -272,65 +256,6 @@ exports.likeComment = async (user_id, comment_id) => {
   } catch (err) {
     // Call API again with the same user_id and comment_id will cause error
     throw err;
-  }
-};
-
-// Functions check existence
-const checkPostExistence = async (id) => {
-  //Check condition where the id exists
-  try {
-    if (!isNaN(id)) {
-      const post = await Post.findByPk(id);
-      return post;
-    }
-    return false;
-  } catch (error) {
-    throw error;
-  }
-};
-const checkCommentExistence = async (id) => {
-  //Check condition where the id exists
-  try {
-    if (!isNaN(id)) {
-      const comment = await Comment.findByPk(id);
-      return comment;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-const checkCommentReactExistence = async (user_id, comment_id) => {
-  //Check condition where the id exists
-  try {
-    if (!isNaN(user_id) && !isNaN(comment_id)) {
-      const like = await CommentReact.findOne({
-        where: {
-          user_id,
-          comment_id,
-        },
-      });
-      return like;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Function check ownership
-const checkCommentOwnership = async (id, user_id) => {
-  //Check condition where this comment belongs to the current user
-  try {
-    if (!isNaN(id) && !isNaN(user_id)) {
-      const comment = await Comment.findOne({
-        where: {
-          id,
-          user_id,
-        },
-      });
-      return comment;
-    }
-  } catch (error) {
-    throw error;
   }
 };
 
@@ -373,8 +298,9 @@ exports.uploadPost = async (description, image, id) => {
     };
     let post = await Post.create(dataPost);
     let post_id = post.dataValues.id;
+    console.log(post_id);
     for (var i = 0; i < arrayImage.length; i++) {
-      await Images.create({
+      await Image.create({
         caption: arrayImage[i]['caption'],
         path: arrayImage[i]['path'],
         post_id: post_id,
@@ -428,7 +354,7 @@ exports.likePost = async (post_id, user_id) => {
 };
 
 exports.commentPost = async (cmt, postId, userId) => {
-  let isPostExist = await checkPostExist(post_id);
+  let isPostExist = await checkPostExist(postId);
   if (!isPostExist) {
     throw new Error('Post is not exist');
   }
@@ -467,13 +393,11 @@ const checkEmpty = async (value) => {
 
 exports.listPost = async (user_id, sort, paging) => {
   try {
-    let limit = Number.parseInt(paging['limit']);
-    let offset = Number.parseInt(paging['offset']);
-    if (Number.isNaN(limit) && limit < 1) {
-      throw new Error('Invalid input');
-    }
-    if (Number.isNaN(offset) && offset < 1) {
-      throw new Error('Invalid input');
+    let limit = paging['limit'];
+    let offset = paging['offset'];
+    if (isEmpty(limit) || isEmpty(offset) || isEmpty(sort)) {
+      limit = 2;
+      offset = 0;
     }
     let filter = [];
     if (sort === '-created') {
@@ -482,16 +406,14 @@ exports.listPost = async (user_id, sort, paging) => {
     if (!checkPostExist) {
       throw new Error('Post is not exist');
     } else {
-      let posts = Post.findAll({
+      let posts = await Post.findAll({
         where: {
           user_id: user_id,
         },
+        attributes: ['description', 'created_at'],
         order: filter,
         include: [
-          {
-            model: Images,
-            required: true,
-          },
+          { model: Image, attributes: ['caption', 'path'], required: true },
         ],
         limit: limit,
         offset: offset,
@@ -541,9 +463,10 @@ exports.updatePost = async (post_id, description, image, user_id) => {
           path: path,
         });
       }
+      console.log(post_id);
       for (var i = 0; i < arrayImage.length; i++) {
-        await Images.create({
-          caption: arrayImage['caption'],
+        await Image.create({
+          caption: arrayImage[i]['caption'],
           path: arrayImage[i]['path'],
           post_id: post_id,
         });
@@ -591,6 +514,113 @@ exports.deletePost = async (post_id, user_id) => {
     }
 
     return message;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//Kiểm tra chuỗi nhập vào có rỗng hay không
+const isEmpty = function (value) {
+  if (!value || 0 === value.length) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải ngày tháng hay không
+const isDate = function (value) {
+  var formats = [
+    moment.ISO_8601,
+    'MM/DD/YYYY  :)  HH*mm*ss',
+    'YYYY/MM/DD',
+    'MM/DD/YYYY',
+    'YYYY-MM-DD',
+    'MM-DD-YYYY',
+  ];
+  if (moment(value, formats, true).isValid()) {
+    return true;
+  }
+};
+
+//Kiểm tra có phải email hay không
+const isEmail = function (value) {
+  let filter =
+    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  if (filter.test(value)) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+// Functions check existence
+const checkPostExistence = async (id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(id)) {
+      const post = await Post.findByPk(id);
+      return post;
+    }
+    return false;
+  } catch (error) {
+    throw error;
+  }
+};
+const checkCommentExistence = async (id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(id)) {
+      const comment = await Comment.findByPk(id);
+      return comment;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+const checkCommentExistsInPost = async (id, post_id) => {
+  try {
+    if (!isNaN(id) && !isNaN(post_id)) {
+      const comment = await Comment.findOne({
+        where: {
+          id,
+          post_id,
+        },
+      });
+      return comment;
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+const checkCommentReactExistence = async (user_id, comment_id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(user_id) && !isNaN(comment_id)) {
+      const like = await CommentReact.findOne({
+        where: {
+          user_id,
+          comment_id,
+        },
+      });
+      return like;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Function check ownership
+const checkCommentOwnership = async (id, user_id) => {
+  //Check condition where this comment belongs to the current user
+  try {
+    if (!isNaN(id) && !isNaN(user_id)) {
+      const comment = await Comment.findOne({
+        where: {
+          id,
+          user_id,
+        },
+      });
+      return comment;
+    }
   } catch (error) {
     throw error;
   }
