@@ -145,8 +145,10 @@ exports.getAllFollowing = async (user_id, requests) => {
   let followers;
   const findBy = [];
   try {
-    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    if (isEmpty(requests.offset)) {
       requests.offset = 0;
+    }
+    if (isEmpty(requests.limit)) {
       requests.limit = 2;
     }
 
@@ -240,8 +242,10 @@ exports.follow = async (follower_id, followed_id) => {
 exports.searchUsers = async (requests) => {
   let users;
   try {
-    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    if (isEmpty(requests.offset)) {
       requests.offset = 0;
+    }
+    if (isEmpty(requests.limit)) {
       requests.limit = 2;
     }
     let condition = [];

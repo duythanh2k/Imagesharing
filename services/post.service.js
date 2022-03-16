@@ -146,12 +146,14 @@ exports.getAllCmtDesc = async (post_id, requests) => {
     if (requests.sort === "-created") {
       ordered.push(["created_at", "DESC"]);
     }
-    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    if (isEmpty(requests.offset)) {
       requests.offset = 0;
+    }
+    if (isEmpty(requests.limit)) {
       requests.limit = 2;
     }
 
-    let isPostExists = await checkPostExistence(id);
+    let isPostExists = await checkPostExistence(post_id);
     // Check if there is a post in database
     if (!isPostExists) {
       let err = {
@@ -228,16 +230,34 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
   }
 };
 
-exports.likeComment = async (user_id, comment_id) => {
+exports.likeComment = async (user_id, post_id, comment_id) => {
   try {
+    let isPostExists = await checkPostExistence(post_id);
     let isCommentExists = await checkCommentExistence(comment_id);
     let alreadyLiked = await checkCommentReactExistence(user_id, comment_id);
+    let isCommentOfPost = await checkCommentExistsInPost(comment_id, post_id);
     let message;
+
+    // Check if there is a post in database
+    if (!isPostExists) {
+      let err = {
+        code: "NOT_FOUND",
+        message: "Post not found!",
+      };
+      throw err;
+    }
     // Check if there is a comment in database
     if (!isCommentExists) {
       let err = {
         code: "NOT_FOUND",
         message: "Comment not found!",
+      };
+      throw err;
+    }
+    if (!isCommentOfPost) {
+      let err = {
+        code: "NOT_FOUND",
+        message: "Comment does not exists in this post!",
       };
       throw err;
     }
