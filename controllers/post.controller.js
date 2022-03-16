@@ -117,10 +117,14 @@ exports.deleteComment = async (req, res) => {
 };
 
 exports.likeComment = async (req, res) => {
+  const post_id = req.params.id;
+  const comment_id = req.params.comment_id;
+  const user_id = req.idUser;
   try {
     let results = await postService.likeComment(
-      req.idUser,
-      req.params.comment_id
+      user_id,
+      post_id, 
+      comment_id
     );
     return res.json({
       status: "Success",

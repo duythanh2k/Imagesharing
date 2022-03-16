@@ -164,8 +164,10 @@ exports.getAllFollowing = async (user_id, requests) => {
   let followers;
   const findBy = [];
   try {
-    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    if (isEmpty(requests.offset)) {
       requests.offset = 0;
+    }
+    if (isEmpty(requests.limit)) {
       requests.limit = 2;
     }
 
@@ -259,8 +261,10 @@ exports.follow = async (follower_id, followed_id) => {
 exports.searchUsers = async (requests) => {
   let users;
   try {
-    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    if (isEmpty(requests.offset)) {
       requests.offset = 0;
+    }
+    if (isEmpty(requests.limit)) {
       requests.limit = 2;
     }
     let condition = [];
@@ -524,15 +528,7 @@ const checkFollowerExistence = async (follower_id, followed_id) => {
 
 //Conditions for search query
 const searchQuery = async (requests) => {
-  const findBy = [];
-  // If there is a query
-  // then check if it is a email or not
-  // if it is email type
-  //    search by email
-  // otherwise
-  //    search by firstname/lastname
-  if (!isEmail(requests)) {
-    findBy.push(
+    return (
       {
         first_name: {
           [Op.like]: '%' + requests + '%',
@@ -542,12 +538,10 @@ const searchQuery = async (requests) => {
         last_name: {
           [Op.like]: '%' + requests + '%',
         },
-      }
-    );
-  } else {
-    findBy.push({
-      email: requests,
-    });
-  }
-  return findBy;
+      },
+      {
+        email: {
+          [Op.like]: '%' + requests + '%',
+        },
+      });
 };
