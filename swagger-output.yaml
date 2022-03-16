@@ -5,16 +5,11 @@ info:
   version: 0.1.9
 servers:
   - url: http://localhost:3000
-tags: [        
-    {
-      name: 'Users',         
-      description: 'Endpoint api',  
-    },  
-  ]     
+tags: [{ name: 'Users', description: 'Endpoint api' }]
 paths:
   /signup:
     post:
-      sumary: Sign up 
+      sumary: Sign up
       description: Sign up a account user
       consumes:
         - application/json
@@ -30,7 +25,7 @@ paths:
           description: Success
   /signin:
     post:
-      sumary: Sign in 
+      sumary: Sign in
       description: Sign in application
       consumes:
         - application/json
@@ -51,7 +46,7 @@ paths:
           description: Success
   /users/profile:
     get:
-      sumary: Profile 
+      sumary: Profile
       description: Get infomation of user
       consumes:
         - application/json
@@ -61,10 +56,10 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Success  
+          description: Success
     put:
       sumary: Update Profile
-      description: Update profile of user 
+      description: Update profile of user
       consumes:
         - application/json
       produces:
@@ -84,7 +79,7 @@ paths:
                 dob:
                   type: string
                   format: date
-                gender: 
+                gender:
                   type: boolean
                 avatar:
                   type: string
@@ -93,7 +88,7 @@ paths:
           description: Success
   /posts/images:
     get:
-      sumary: Images user 
+      sumary: Images user
       description: Get list images of user
       consumes:
         - application/json
@@ -127,7 +122,7 @@ paths:
           description: Success
   /posts/images/{id}:
     put:
-      sumary: Update caption image 
+      sumary: Update caption image
       description: Use to update caption image
       consumes:
         - application/json
@@ -137,7 +132,7 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: id   # Note the name is the same as in the path
+          name: id # Note the name is the same as in the path
           required: true
           schema:
             type: integer
@@ -154,7 +149,7 @@ paths:
         '200':
           description: Success
     delete:
-      sumary: Update caption image 
+      sumary: Update caption image
       description: Use to update caption image
       consumes:
         - application/json
@@ -164,14 +159,79 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: id   # Note the name is the same as in the path
+          name: id # Note the name is the same as in the path
           required: true
           schema:
             type: integer
           description: The image id
       responses:
         '200':
-          description: Success    
+          description: Success
+  /users/images:
+    get:
+      sumary: Images user all
+      description: Get list images of user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: The numbers of items to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: The number of items to skip before starting to collect the result set
+        - name: createdBy
+          in: query
+          schema:
+            type: integer
+          description: >
+            all images of the specified user, 
+            example: createdBy=1 get all images of user have id=1
+        - name: following
+          in: query
+          schema:
+            type: string
+            # enum:
+            #   - true
+          description: >
+            all images of following by signin user
+            example: following=true
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: >
+            all images that need to fetch by caption, name user post,
+            example: search=anh dep qua, search=do thanh
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: >
+            The start date for the report when user post .
+             Must be used together with `endDate`
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: >
+            The end date for the report when user post .
+             Must be used together with `startDate`
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found
 components:
   schemas:
     User:
@@ -193,7 +253,7 @@ components:
         dob:
           type: string
           format: date
-        gender: 
+        gender:
           type: boolean
         avatar:
           type: string
@@ -253,9 +313,9 @@ components:
           type: integer
           readOnly: true
       require:
-          - id
-          - path
-          - post_id 
+        - id
+        - path
+        - post_id
     Follower:
       type: object
       properties:
@@ -266,8 +326,8 @@ components:
           type: integer
           readOnly: true
       require:
-          - follower_id
-          - followed_id
+        - follower_id
+        - followed_id
     Comment:
       type: object
       properties:
@@ -289,11 +349,11 @@ components:
           type: integer
           readOnly: true
       require:
-          - id
-          - text
-          - created_at
-          - user_id
-          - post_id
+        - id
+        - text
+        - created_at
+        - user_id
+        - post_id
     CommentReact:
       type: object
       properties:
@@ -304,8 +364,8 @@ components:
           type: integer
           readOnly: true
       require:
-          - user_id
-          - comment_id
+        - user_id
+        - comment_id
   securitySchemes:
     bearerAuth:
       type: apiKey
