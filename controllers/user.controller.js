@@ -172,7 +172,6 @@ exports.getAllImage = async (req, res) => {
     let endDate = req.query.endDate;
     let limit = req.query.limit;
     let offset = req.query.offset;
-
     let result;
 
     result = await userService.getImageAllUser(limit, offset);

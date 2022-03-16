@@ -169,7 +169,7 @@ paths:
           description: Success
   /users/images:
     get:
-      sumary: Images user all
+      sumary: Get all image 
       description: Get list images of user
       consumes:
         - application/json
@@ -227,14 +227,7 @@ paths:
              Must be used together with `startDate`
       responses:
         '200':
-          description: Success
-          content: 
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/User'
-                  - $ref: '#/components/schemas/Image'
-                  - $ref: '#/components/schemas/Post'
+          description: Success              
 components:
   schemas:
     User:
