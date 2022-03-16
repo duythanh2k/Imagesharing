@@ -91,6 +91,114 @@ paths:
       responses:
         '200':
           description: Success
+  /users:
+    get:
+      summary: search for other users
+      description: By passing in the appropriate options, you can search for
+        either name or email of user
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          description: pass an optional search string for looking up user
+          required: false
+          type: string
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success 
+  /users/following:
+    get:
+      summary: get all the users that current user follow and
+        also support search query
+      description: Display all the following users.
+        By passing in the appropriate options, you can search for
+        either name or email of an user that current user are 
+        following
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          description: pass an optional search string for looking up other following user
+          required: false
+          type: string
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success
+  /users/{id}/follow:
+    post:
+      summary: follow an user
+      description: adds a relation between follower and followed to the system
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The user that current user want to follow
+      responses:
+        '200':
+          description: Followed
+    delete:
+      summary: unfollow an user
+      description: removes a relation between follower and followed to the system
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The user that current user want to unfollow
+      responses:
+        '200':
+          description: Unfollowed
   /posts/images:
     get:
       sumary: Images user 
@@ -171,7 +279,120 @@ paths:
           description: The image id
       responses:
         '200':
-          description: Success    
+          description: Success   
+  /post/{id}/comments:
+    get:
+      summary: show all comments of a post
+      description: display all the comments of a post
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The post that contains all the comments that you are looking for
+        - in: query
+          name: sort
+          description: pass an optional order string for sort comments by timestamp
+          required: false
+          type: string
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success
+  /posts/{id}/comments/{comment_id}:
+    post:
+      summary: remove a comment
+      description: delete a comment of a post
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The post that contains all the comments that you are looking for
+        - in: path
+          name: comment_id
+          required: true
+          schema:
+            type: integer
+          description: The comment that you want to delete
+      responses:
+        '200':
+          description: Deleted
+  /posts/{id}/comments/{comment_id}/like:
+    post:
+      summary: like a comment
+      description: adds a relation between user and liked comment to the system
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The post that contains all the comments that you are looking for
+        - in: path
+          name: comment_id
+          required: true
+          schema:
+            type: integer
+          description: The comment that you want to like
+      responses:
+        '200':
+          description: Liked
+    delete:
+      summary: unlike an comment
+      description: removes a relation between user and liked comment to the system
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The post that contains all the comments that you are looking for
+        - in: path
+          name: comment_id
+          required: true
+          schema:
+            type: integer
+          description: The comment that you want to unlike
+      responses:
+        '200':
+          description: Unliked
 components:
   schemas:
     User:
