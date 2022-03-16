@@ -164,6 +164,7 @@ exports.searchUsers = async (req, res) => {
 //search image
 exports.getAllImage = async (req, res) => {
   try {
+    let idUser = req.idUser;
     let createdBy = req.query.createdBy;
     let following = req.query.following;
     let search = req.query.search;
@@ -171,10 +172,14 @@ exports.getAllImage = async (req, res) => {
     let endDate = req.query.endDate;
     let limit = req.query.limit;
     let offset = req.query.offset;
+
     let result;
+
+    result = await userService.getImageAllUser(limit, offset);
+
     if (createdBy != null || following != null) {
       result = await userService.getAllImage(
-        req.idUser,
+        idUser,
         createdBy,
         following,
         limit,
@@ -207,27 +212,3 @@ exports.getAllImage = async (req, res) => {
     });
   }
 };
-// exports.getImageBy = async (req, res) => {
-//   try {
-//     let result = await userService.getImageBy(
-//       req.query.search,
-//       req.query.startDate,
-//       req.query.endDate,
-//       req.query.limit,
-//       req.query.offset
-//     );
-//     return res.json({
-//       status: 'Success',
-//       code: null,
-//       message: null,
-//       data: result,
-//     });
-//   } catch (err) {
-//     res.status(400).json({
-//       status: 'Error',
-//       code: err.code,
-//       message: err.message,
-//       data: null,
-//     });
-//   }
-// };

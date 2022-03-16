@@ -1,13 +1,10 @@
 const User = require('../models/user.model');
-const Posts = require('../models/post.model');
-const Images = require('../models/image.model');
 const Follower = require('../models/follower.model');
 const db = require('../util/db');
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const { QueryTypes, Op } = require('sequelize');
-const { request } = require('express');
 const date = require('date-and-time');
 
 //Kiểm tra chuỗi nhập vào có rỗng hay không
@@ -354,7 +351,41 @@ const searchQuery = async (requests) => {
   return findBy;
 };
 
-// Do Tuan Thanh
+//search
+exports.getImageAllUser = async (limit, offset) => {
+  try {
+    //limit, offset
+    let pageAsNumber = parseInt(offset);
+    let sizeAsNumber = parseInt(limit);
+
+    offset = 0;
+    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+      offset = pageAsNumber;
+    }
+
+    limit = 2;
+    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
+      limit = sizeAsNumber;
+    }
+
+    const rows = await db.query(
+      `SELECT images.caption,  images.path, posts.description,posts.created_at, 
+          users.first_name , users.last_name,users.id as userId
+        FROM \`images\`
+          JOIN \`posts\`
+            ON images.post_id = posts.id
+          JOIN \`users\`
+            ON users.id=posts.user_id  
+        LIMIT ${limit}
+        OFFSET ${offset} `,
+      { plain: false, type: QueryTypes.SELECT }
+    );
+    return rows;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
 // search image
 exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
   try {
@@ -373,7 +404,7 @@ exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
 
     // query: lấy tất cả ảnh của người tạo theo id
     let createdByWhereClause = '';
-    if (!isNaN(createdBy)) {
+    if (createdBy) {
       createdByWhereClause = `AND posts.user_id = ${createdBy}`;
     }
 
@@ -416,6 +447,7 @@ exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
   }
 };
 
+//
 exports.getImageBy = async (search, limit, offset) => {
   try {
     let pageAsNumber = Number.parseInt(offset);
@@ -443,7 +475,6 @@ exports.getImageBy = async (search, limit, offset) => {
 		      ON users.id=posts.user_id
         WHERE 1=1 
           ${searchWhereClause} 
-      
         LIMIT ${limit}
         OFFSET ${offset} `,
       { plain: false, type: QueryTypes.SELECT }
@@ -494,9 +525,8 @@ exports.getImageByDate = async (startDate, endDate, limit, offset) => {
       };
       throw err;
     }
-
     var dateWhereClause = '';
-    if (startDate && endDate) {
+    if (fdate && edate) {
       dateWhereClause = `and posts.created_at between '${fdate}' and '${edate}'`;
     }
 

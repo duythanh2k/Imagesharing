@@ -1,13 +1,11 @@
-const User = require("../models/user.model");
-const Post = require("../models/post.model");
-const Comment = require("../models/comment.model");
-const CommentReact = require("../models/comment_react.model");
-const Image = require("../models/image.model");
-const jwt = require("jsonwebtoken");
-const db = require("../util/db");
-const { Sequelize,QueryTypes } = require("sequelize");
-const Post_react = require("../models/post_react.model");
-require("dotenv").config();
+const Post = require('../models/post.model');
+const Comment = require('../models/comment.model');
+const CommentReact = require('../models/comment_react.model');
+const Image = require('../models/image.model');
+const jwt = require('jsonwebtoken');
+const { Sequelize, QueryTypes } = require('sequelize');
+const Post_react = require('../models/post_react.model');
+require('dotenv').config();
 
 //Kiểm tra chuỗi nhập vào có rỗng hay không
 const isEmpty = function (value) {
@@ -20,11 +18,11 @@ const isEmpty = function (value) {
 const isDate = function (value) {
   var formats = [
     moment.ISO_8601,
-    "MM/DD/YYYY  :)  HH*mm*ss",
-    "YYYY/MM/DD",
-    "MM/DD/YYYY",
-    "YYYY-MM-DD",
-    "MM-DD-YYYY",
+    'MM/DD/YYYY  :)  HH*mm*ss',
+    'YYYY/MM/DD',
+    'MM/DD/YYYY',
+    'YYYY-MM-DD',
+    'MM-DD-YYYY',
   ];
   if (moment(value, formats, true).isValid()) {
     return true;
@@ -43,94 +41,89 @@ const isEmail = function (value) {
 };
 //Lấy tất cả các ảnh của user login
 exports.getAllImageUser = async (idUser, requests) => {
-    try {
-      //Kiểm tra dữ liệu nhập vào có trống hay không, nếu trống thì set default
-      if (
-        isEmpty(requests.limit) ||
-        isEmpty(requests.offset) ||
-        isEmpty(requests.sort_by) ||
-        isEmpty(requests.order_by)
-      ) {
-        requests={
-            limit: 20,
-            offset: 0,
-            sort_by: 'created_at',
-            order_by: 'DESC'
-        }
-      }
-      let result=await Image.findAll({
-          attributes:['id','path','caption'],
-          include:
-          [{  model:Post,
-              attributes:['created_at'],
-              required:true,
-              where:{
-                  user_id:idUser,
-              },
-              order:[
-                [requests.sort_by,requests.order_by]
-              ]
-          }],
-          order:[
-            [Sequelize.col(requests.sort_by),requests.order_by]
-          ],
-          limit: Number(requests.limit),
-          offset: Number(requests.offset)
-           });
-      return result;
-    } catch (err) {
-      throw err;
+  try {
+    //Kiểm tra dữ liệu nhập vào có trống hay không, nếu trống thì set default
+    if (
+      isEmpty(requests.limit) ||
+      isEmpty(requests.offset) ||
+      isEmpty(requests.sort_by) ||
+      isEmpty(requests.order_by)
+    ) {
+      requests = {
+        limit: 20,
+        offset: 0,
+        sort_by: 'created_at',
+        order_by: 'DESC',
+      };
     }
-  };
-  
-  //Cập nhật caption mới cho image
-  exports.updateCapImage = async (idImage,idUser,newCaption) => {
-    try {
-      //Kiểm tra image có tồn tại hay không
-      let check = await Image.findOne({ where: { id : idImage } });
-      if(!check){
-        let err = {
-          code: "NOT_FOUND",
-          message: "Can not found your images",
-        };
-        throw err;
-      }
-      // Kiểm tra caption có undefined hay không
-      if (newCaption===undefined){
-        let err = {
-          code: "INVALID_INPUT",
-          message: "Input data is invalid",
-        };
-        throw err;
-      }
-      let checkOwner=await Image.findAll({
-            where: { id:idImage },
-            include:
-            [{  model:Post,
-                required:true,
-                where: {id:idUser}
-            }],
-        });
-        //Kiểm tra ảnh có phải của tk đang login
-      if(checkOwner.length===0){
-        let err = {
-            code: "NOT_PERMISSON",
-            message: "You don't have permission",
-          };
-          throw err;
-      }  
-      await Image.update(
+    let result = await Image.findAll({
+      attributes: ['id', 'path', 'caption'],
+      include: [
         {
-          caption: newCaption,
+          model: Post,
+          attributes: ['created_at'],
+          required: true,
+          where: {
+            user_id: idUser,
+          },
+          order: [[requests.sort_by, requests.order_by]],
         },
-        {
-          where: { id: idImage },
-        });
-      return;
-    } catch (err) {
+      ],
+      order: [[Sequelize.col(requests.sort_by), requests.order_by]],
+      limit: Number(requests.limit),
+      offset: Number(requests.offset),
+    });
+    return result;
+  } catch (err) {
+    throw err;
+  }
+};
+
+//Cập nhật caption mới cho image
+exports.updateCapImage = async (idImage, idUser, newCaption) => {
+  try {
+    //Kiểm tra image có tồn tại hay không
+    let check = await Image.findOne({ where: { id: idImage } });
+    if (!check) {
+      let err = {
+        code: 'NOT_FOUND',
+        message: 'Can not found your images',
+      };
       throw err;
     }
+    // Kiểm tra caption có undefined hay không
+    if (newCaption === undefined) {
+      let err = {
+        code: 'INVALID_INPUT',
+        message: 'Input data is invalid',
+      };
+      throw err;
+    }
+    let checkOwner = await Image.findAll({
+      where: { id: idImage },
+      include: [{ model: Post, required: true, where: { id: idUser } }],
+    });
+    //Kiểm tra ảnh có phải của tk đang login
+    if (checkOwner.length === 0) {
+      let err = {
+        code: 'NOT_PERMISSON',
+        message: "You don't have permission",
+      };
+      throw err;
+    }
+    await Image.update(
+      {
+        caption: newCaption,
+      },
+      {
+        where: { id: idImage },
+      }
+    );
+    return;
+  } catch (err) {
+    throw err;
   }
+};
 
 //Xóa image
 exports.deleteImage = async (idUser, idImage) => {
@@ -139,8 +132,8 @@ exports.deleteImage = async (idUser, idImage) => {
     let check = await Image.findOne({ where: { id: idImage } });
     if (!check) {
       let err = {
-        code: "NOT_FOUND",
-        message: "Can not found your images",
+        code: 'NOT_FOUND',
+        message: 'Can not found your images',
       };
       throw err;
     }
@@ -159,7 +152,7 @@ exports.deleteImage = async (idUser, idImage) => {
     //Kiểm tra ảnh có phải của tk đang login
     if (checkOwner.length === 0) {
       let err = {
-        code: "NOT_PERMISSON",
+        code: 'NOT_PERMISSON',
         message: "You don't have permission",
       };
       throw err;
@@ -179,8 +172,8 @@ exports.getAllCmtDesc = async (id, requests) => {
     const ordered = [];
     let message, comment;
     // query for sort comment by descend timestamp
-    if (requests.sort === "-created") {
-      ordered.push(["created_at", "DESC"]);
+    if (requests.sort === '-created') {
+      ordered.push(['created_at', 'DESC']);
     }
     if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
       requests.offset = 0;
@@ -190,7 +183,7 @@ exports.getAllCmtDesc = async (id, requests) => {
     let isPostExists = await checkPostExistence(id);
     // Check if there is a post in database
     if (!isPostExists) {
-      message = "Post does not exist!";
+      message = 'Post does not exist!';
       comment = null;
       return { message, comment };
     }
@@ -224,11 +217,11 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
     // then Check if the current user own this comment
     // then Find a comment and delete
     if (!isPostExists) {
-      message = "Post does not exist!";
+      message = 'Post does not exist!';
       return message;
     }
     if (!isCommentExists) {
-      message = "Comment does not exist!";
+      message = 'Comment does not exist!';
       return message;
     }
     if (!isOwn) {
@@ -255,11 +248,11 @@ exports.likeComment = async (user_id, comment_id) => {
     let message;
     // Check if there is a comment in database
     if (!isCommentExists) {
-      message = "Comment does not exist!";
+      message = 'Comment does not exist!';
       return message;
     }
     if (alreadyLiked) {
-      message = "Unliked!";
+      message = 'Unliked!';
       // Destroy like when call twice
       await CommentReact.destroy({
         where: {
@@ -269,7 +262,7 @@ exports.likeComment = async (user_id, comment_id) => {
       });
       return message;
     }
-    message = "Liked!";
+    message = 'Liked!';
     // Create a new like
     await CommentReact.create({
       user_id,
@@ -341,28 +334,26 @@ const checkCommentOwnership = async (id, user_id) => {
   }
 };
 
-
 exports.uploadImage = async (numberImage, image) => {
-  if (typeof numberImage !== "number")
-    throw new Error("ERROR_CODE.INVALID_INPUT");
+  if (typeof numberImage !== 'number')
+    throw new Error('ERROR_CODE.INVALID_INPUT');
   let arrayImage = [numberImage];
   for (var i = 0; i < numberImage; i++) {
     arrayImage[i] = {
-      uploadLink: "link" + (i + 1),
-      uploadToken: jwt.sign("" + image[i], process.env.ACCESS_TOKEN_SECRET, {
-        algorithm: "HS256",
+      uploadLink: 'link' + (i + 1),
+      uploadToken: jwt.sign('' + image[i], process.env.ACCESS_TOKEN_SECRET, {
+        algorithm: 'HS256',
       }),
     };
   }
   return arrayImage;
 };
 
-
 exports.uploadPost = async (description, image, id) => {
   try {
-    if (typeof description !== "string")
-      throw new Error("ERROR_CODE.INVALID_INPUT");
-    if (!checkEmpty(description)) throw new Error("ERROR_CODE.INVALID_INPUT");
+    if (typeof description !== 'string')
+      throw new Error('ERROR_CODE.INVALID_INPUT');
+    if (!checkEmpty(description)) throw new Error('ERROR_CODE.INVALID_INPUT');
     let arrayImage = [];
     for (var i = 0; i < image[0].uploadToken.length; i++) {
       let path = jwt.verify(
@@ -370,7 +361,7 @@ exports.uploadPost = async (description, image, id) => {
         process.env.ACCESS_TOKEN_SECRET
       );
       arrayImage.push({
-        caption: image[0]["caption"][i],
+        caption: image[0]['caption'][i],
         path: path,
       });
     }
@@ -384,11 +375,11 @@ exports.uploadPost = async (description, image, id) => {
     let post_id = post.dataValues.id;
     for (var i = 0; i < arrayImage.length; i++) {
       await Images.create({
-        caption: arrayImage[i]["caption"],
-        path: arrayImage[i]["path"],
-        post_id: post_id,       
+        caption: arrayImage[i]['caption'],
+        path: arrayImage[i]['path'],
+        post_id: post_id,
       });
-    };
+    }
     const result = {
       description: description,
       image: arrayImage,
@@ -403,7 +394,7 @@ exports.likePost = async (post_id, user_id) => {
   try {
     let isPostExist = await checkPostExist(post_id);
     if (!isPostExist) {
-      let message = "Post is not exist";
+      let message = 'Post is not exist';
       return message;
     }
     const data = {
@@ -419,7 +410,7 @@ exports.likePost = async (post_id, user_id) => {
     });
     if (!like) {
       await Post_react.create(data);
-      message = "Liked";
+      message = 'Liked';
       return message;
     } else if (like) {
       await Post_react.destroy({
@@ -428,7 +419,7 @@ exports.likePost = async (post_id, user_id) => {
           post_id,
         },
       });
-      let message = "Unliked";
+      let message = 'Unliked';
       return message;
     }
   } catch (err) {
@@ -439,10 +430,10 @@ exports.likePost = async (post_id, user_id) => {
 exports.commentPost = async (cmt, postId, userId) => {
   let isPostExist = await checkPostExist(post_id);
   if (!isPostExist) {
-    throw new Error("Post is not exist");
+    throw new Error('Post is not exist');
   }
   if (!checkEmpty(cmt) || !checkEmpty(postId)) {
-    throw new Error("Empty input");
+    throw new Error('Empty input');
   } else {
     const data = {
       text: cmt.comment,
@@ -474,7 +465,6 @@ const checkEmpty = async (value) => {
   return false;
 };
 
-
 exports.listPost = async (user_id, sort, paging) => {
   try {
     let limit = Number.parseInt(paging['limit']);
@@ -486,11 +476,11 @@ exports.listPost = async (user_id, sort, paging) => {
       throw new Error('Invalid input');
     }
     let filter = [];
-    if (sort === "-created") {
-      filter.push(["created_at", "Desc"]);
+    if (sort === '-created') {
+      filter.push(['created_at', 'Desc']);
     }
     if (!checkPostExist) {
-      throw new Error("Post is not exist");
+      throw new Error('Post is not exist');
     } else {
       let posts = Post.findAll({
         where: {
@@ -503,8 +493,8 @@ exports.listPost = async (user_id, sort, paging) => {
             required: true,
           },
         ],
-        limit : limit,
-        offset : offset,
+        limit: limit,
+        offset: offset,
       });
       return posts;
     }
@@ -513,16 +503,16 @@ exports.listPost = async (user_id, sort, paging) => {
   }
 };
 
-exports.updatePost = async (post_id, description, image,user_id) => {
+exports.updatePost = async (post_id, description, image, user_id) => {
   try {
     let isPostExist = await checkPostExist(post_id);
     if (!isPostExist) {
-      throw new Error("Post is not exist");
+      throw new Error('Post is not exist');
     }
-    if (!description || typeof description !== "string")
+    if (!description || typeof description !== 'string')
       throw new Error('ERROR_CODE.INVALID_INPUT');
     if (!checkEmpty(post_id) || !checkEmpty(description)) {
-      throw new Error("Empty input");
+      throw new Error('Empty input');
     }
     let checkOwner = await Post.findAll({
       where: {
@@ -532,32 +522,33 @@ exports.updatePost = async (post_id, description, image,user_id) => {
     });
     if (checkOwner.length === 0) {
       let err = {
-        code: "NOT_PERMISSON",
+        code: 'NOT_PERMISSON',
         message: "You don't have permission",
       };
       throw err;
     }
     //check if dont update image
-    if(image[0]['uploadToken'][0]!==undefined){``
-    let arrayImage = [];
-    for (var i = 0; i < image[0].uploadToken.length; i++) {    
-      let path = jwt.verify(
-        image[0].uploadToken[i],
-        process.env.ACCESS_TOKEN_SECRET
-      );
-      arrayImage.push({
-        caption: image[0].caption[i],
-        path: path,
-      });
-    }
-    for (var i = 0; i < arrayImage.length; i++) {
+    if (image[0]['uploadToken'][0] !== undefined) {
+      ``;
+      let arrayImage = [];
+      for (var i = 0; i < image[0].uploadToken.length; i++) {
+        let path = jwt.verify(
+          image[0].uploadToken[i],
+          process.env.ACCESS_TOKEN_SECRET
+        );
+        arrayImage.push({
+          caption: image[0].caption[i],
+          path: path,
+        });
+      }
+      for (var i = 0; i < arrayImage.length; i++) {
         await Images.create({
-        caption: arrayImage["caption"],
-        path: arrayImage[i]["path"],
-        post_id: post_id,
-      });
+          caption: arrayImage['caption'],
+          path: arrayImage[i]['path'],
+          post_id: post_id,
+        });
+      }
     }
-  }
     await Post.update(
       { description: description },
       {
@@ -583,21 +574,20 @@ exports.deletePost = async (post_id, user_id) => {
     });
     if (checkOwner.length === 0) {
       let err = {
-        code: "NOT_PERMISSON",
+        code: 'NOT_PERMISSON',
         message: "You don't have permission",
       };
       throw err;
-      
     } else {
       await Post.destroy({
         where: {
           id: post_id,
         },
       });
-      message = "Deleted";
+      message = 'Deleted';
     }
     if (!isPostExist) {
-      throw new Error("Post is not exist");
+      throw new Error('Post is not exist');
     }
 
     return message;

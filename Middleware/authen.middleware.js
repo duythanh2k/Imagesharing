@@ -1,18 +1,17 @@
-const userService = require("../services/user.service");
-const jwt         = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 exports.isAuth = async (req, res, next) => {
-  const accessToken = req.headers["authorization"];
+  const accessToken = req.headers['authorization'];
   if (!accessToken) {
     return res.status(401).json({
-      status: "Error",
-      code: "NOT_FOUND",
-      message: "Can not found access token",
+      status: 'Error',
+      code: 'NOT_FOUND',
+      message: 'Can not found access token',
       data: null,
     });
   }
-  
-  const token = accessToken.split(" ")[1];
+
+  const token = accessToken.split(' ')[1];
   try {
     let verified = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     req.idUser = verified.payload.idUser;
@@ -21,9 +20,9 @@ exports.isAuth = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     return res.status(403).json({
-      status: "Error",
-      code: "UNAUTHOREZID",
-      message: "You must login to continue",
+      status: 'Error',
+      code: 'UNAUTHOREZID',
+      message: 'You must login to continue',
       data: null,
     });
   }
