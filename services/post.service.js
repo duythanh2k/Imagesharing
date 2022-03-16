@@ -480,11 +480,7 @@ exports.updatePost = async (post_id, description, image,user_id) => {
     console.log(post_id);
     for (var i = 0; i < arrayImage.length; i++) {
         await Image.create({
-<<<<<<< HEAD
-        caption: arrayImage["caption"],
-=======
         caption: arrayImage[i]["caption"],
->>>>>>> 4d60cd20b6b08877225923a9923b4f17fe9e4441
         path: arrayImage[i]["path"],
         post_id: post_id,
       });
