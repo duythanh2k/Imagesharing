@@ -146,6 +146,9 @@ exports.getAllCmtDesc = async (post_id, requests) => {
     if (requests.sort === "-created") {
       ordered.push(["created_at", "DESC"]);
     }
+    if (requests.sort === "created") {
+      ordered.push(["created_at", "ASC"]);
+    }
     if (isEmpty(requests.offset)) {
       requests.offset = 0;
     }

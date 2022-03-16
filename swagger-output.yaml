@@ -162,8 +162,8 @@ paths:
           description: Success
   /users/{id}/follow:
     post:
-      summary: follow an user
-      description: adds a relation between follower and followed to the system
+      summary: follow/unfollow an user
+      description: adds/removes a relation between follower and followed to the system
       consumes:
       - application/json
       produces:
@@ -176,29 +176,10 @@ paths:
           required: true
           schema:
             type: integer
-          description: The user that current user want to follow
+          description: The user that current user want to follow/unfollow
       responses:
         '200':
-          description: Followed
-    delete:
-      summary: unfollow an user
-      description: removes a relation between follower and followed to the system
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: The user that current user want to unfollow
-      responses:
-        '200':
-          description: Unfollowed
+          description: Followed/Unfollowed
   /posts/images:
     get:
       sumary: Images user 
@@ -280,7 +261,7 @@ paths:
       responses:
         '200':
           description: Success   
-  /post/{id}/comments:
+  /posts/{id}/comments:
     get:
       summary: show all comments of a post
       description: display all the comments of a post
@@ -319,13 +300,15 @@ paths:
         '200':
           description: Success
   /posts/{id}/comments/{comment_id}:
-    post:
+    delete:
       summary: remove a comment
       description: delete a comment of a post
       consumes:
       - application/json
       produces:
       - application/json
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -344,8 +327,8 @@ paths:
           description: Deleted
   /posts/{id}/comments/{comment_id}/like:
     post:
-      summary: like a comment
-      description: adds a relation between user and liked comment to the system
+      summary: like/unlike a comment
+      description: adds/removes a relation between user and liked comment to the system
       consumes:
       - application/json
       produces:
@@ -364,35 +347,10 @@ paths:
           required: true
           schema:
             type: integer
-          description: The comment that you want to like
+          description: The comment that you want to like/unlike
       responses:
         '200':
-          description: Liked
-    delete:
-      summary: unlike an comment
-      description: removes a relation between user and liked comment to the system
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: The post that contains all the comments that you are looking for
-        - in: path
-          name: comment_id
-          required: true
-          schema:
-            type: integer
-          description: The comment that you want to unlike
-      responses:
-        '200':
-          description: Unliked
+          description: Liked/Unliked
 components:
   schemas:
     User:
