@@ -199,8 +199,6 @@ paths:
           in: query
           schema:
             type: string
-            # enum:
-            #   - true
           description: >
             all images of following by signin user
             example: following=true
@@ -209,8 +207,8 @@ paths:
           schema:
             type: string
           description: >
-            all images that need to fetch by caption, name user post,
-            example: search=anh dep qua, search=do thanh
+            all images that need to fetch by caption, name userpost,
+            example: search=chup dep , search=do thanh
         - name: startDate
           in: query
           schema:
@@ -218,7 +216,7 @@ paths:
             format: date-time
           description: >
             The start date for the report when user post .
-             Must be used together with `endDate`
+            Must be used together with `endDate`
         - name: endDate
           in: query
           schema:
@@ -230,8 +228,13 @@ paths:
       responses:
         '200':
           description: Success
-        '404':
-          description: Not found
+          content: 
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/User'
+                  - $ref: '#/components/schemas/Image'
+                  - $ref: '#/components/schemas/Post'
 components:
   schemas:
     User:
@@ -366,6 +369,7 @@ components:
       require:
         - user_id
         - comment_id
+    
   securitySchemes:
     bearerAuth:
       type: apiKey
