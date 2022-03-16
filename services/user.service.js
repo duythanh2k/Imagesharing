@@ -41,11 +41,30 @@ exports.signUp = async function (user) {
     };
     throw err;
   }
+  const regex=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+  //Kiểm tra định dạng password
+  if(regex.test(user.password)==false)
+  { 
+    console.log(regex.test(user.password))
+    let err = {
+      code: 'INCORRECT_DATATYPE',
+      message: 'Password is incorrect datatype',
+    };
+    throw err;
+  }
   // Kiểm tra định dạng ngày tháng
   if (!isDate(user.dob)) {
     let err = {
       code: 'INCORRECT_DATATYPE',
       message: 'Date of birth is incorrect datatype',
+    };
+    throw err;
+  }
+  console.log(user.gender)
+  if(user.gender!="male" && user.gender!='female'){
+    let err = {
+      code: 'INCORRECT_DATA_INPUT',
+      message: 'Gender is incorrect data',
     };
     throw err;
   }

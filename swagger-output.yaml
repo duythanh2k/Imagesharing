@@ -191,11 +191,13 @@ components:
         password:
           type: string
           format: password
+          description: At least one digit, one lowercase character, one uppercase character, one special character, 8 characters in length, but no more than 32.
         dob:
           type: string
           format: date
         gender: 
-          type: boolean
+          type: string
+          enum: [female,male]
         avatar:
           type: string
       require:
