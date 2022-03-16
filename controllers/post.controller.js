@@ -139,12 +139,14 @@ exports.likeComment = async (req, res) => {
 };
 exports.uploadImage = async (req, res, next) => {
   try {
-    if (req.files.length > 0) {
+    let numberImage = Number.parseInt(req.query.numberOfImage);
+    if (req.files.length === numberImage) {
       pictures = req.files.map((file) => {
         return file["path"];
       });
+    }else{
+      throw new Error('Please select image');
     }
-    let numberImage = Number.parseInt(req.query.numberOfImage);
     let result = await postService.uploadImage(numberImage, pictures);
     res.status(200).json({
       status: "Success",
