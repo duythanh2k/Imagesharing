@@ -141,13 +141,12 @@ exports.deleteImage = async (idUser, idImage) => {
 // Get all comments of a post sort by timestamp
 exports.getAllCmtDesc = async (post_id, requests) => {
   try {
-    const ordered = [];
     // query for sort comment by descend timestamp
-    if (requests.sort === "-created") {
-      ordered.push(["created_at", "DESC"]);
+    if(isEmpty(requests.sort_by)){
+      requests.sort_by = 'created_at';
     }
-    if (requests.sort === "created") {
-      ordered.push(["created_at", "ASC"]);
+    if(isEmpty(requests.order_by)){
+      requests.order_by = 'DESC';
     }
     if (isEmpty(requests.offset)) {
       requests.offset = 0;
@@ -171,7 +170,9 @@ exports.getAllCmtDesc = async (post_id, requests) => {
         post_id,
       },
       // Order condition
-      order: ordered,
+      order: [
+        [requests.sort_by, requests.order_by]
+      ],
       offset: Number(requests.offset),
       limit: Number(requests.limit),
     });

@@ -279,10 +279,15 @@ paths:
             type: integer
           description: The post that contains all the comments that you are looking for
         - in: query
-          name: sort
-          description: pass an optional order string for sort comments by timestamp
-          required: false
-          type: string
+          name: sort_by
+          schema:
+            type: string
+          description: sort by attribute
+        - in: query
+          name: order_by
+          schema:
+            type: string
+          description: sort ascending or descending
         - in: query
           name: offset
           description: number of records to skip for pagination
