@@ -40,11 +40,11 @@ exports.signUp = async function (user) {
     };
     throw err;
   }
-  const regex=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+  const regex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   //Kiểm tra định dạng password
-  if(regex.test(user.password)==false)
-  { 
-    console.log(regex.test(user.password))
+  if (regex.test(user.password) == false) {
+    console.log(regex.test(user.password));
     let err = {
       code: 'INCORRECT_DATATYPE',
       message: 'Password is incorrect datatype',
@@ -59,8 +59,8 @@ exports.signUp = async function (user) {
     };
     throw err;
   }
-  console.log(user.gender)
-  if(user.gender!="male" && user.gender!='female'){
+  console.log(user.gender);
+  if (user.gender != 'male' && user.gender != 'female') {
     let err = {
       code: 'INCORRECT_DATA_INPUT',
       message: 'Gender is incorrect data',
@@ -313,7 +313,7 @@ exports.getAllImage = async (
       limit = sizeAsNumber;
     }
 
-    //  lấy tất cả ảnh của người đăng bài
+    //  lấy tất cả ảnh của người tạo
     var createdByWhereClause = '';
     if (createdBy) {
       if (!isNumber(createdBy)) {
@@ -406,9 +406,9 @@ exports.getAllImage = async (
   }
 };
 //kiểm tra input nhập vào có là số không
-const isNumber = function (n) {
+const isNumber = function (value) {
   try {
-    return !Number.isNaN(parseInt(n)) && !isNaN(n - 0);
+    return !Number.isNaN(parseInt(value));
   } catch (error) {
     throw error;
   }
@@ -477,20 +477,21 @@ const checkFollowerExistence = async (follower_id, followed_id) => {
 
 //Conditions for search query
 const searchQuery = async (requests) => {
-    return (
-      {
-        first_name: {
-          [Op.like]: '%' + requests + '%',
-        },
+  return (
+    {
+      first_name: {
+        [Op.like]: '%' + requests + '%',
       },
-      {
-        last_name: {
-          [Op.like]: '%' + requests + '%',
-        },
+    },
+    {
+      last_name: {
+        [Op.like]: '%' + requests + '%',
       },
-      {
-        email: {
-          [Op.like]: '%' + requests + '%',
-        },
-      });
+    },
+    {
+      email: {
+        [Op.like]: '%' + requests + '%',
+      },
+    }
+  );
 };
