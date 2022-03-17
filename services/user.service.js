@@ -266,42 +266,16 @@ exports.searchUsers = async (requests) => {
 };
 
 // search image
-exports.getImageAllUser = async (limit, offset) => {
-  try {
-    //limit, offset
-    let pageAsNumber = parseInt(offset);
-    let sizeAsNumber = parseInt(limit);
-
-    offset = 0;
-    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
-      offset = pageAsNumber;
-    }
-
-    limit = 2;
-    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
-      limit = sizeAsNumber;
-    }
-
-    const rows = await db.query(
-      `SELECT images.caption,  images.path, posts.description,posts.created_at, 
-          users.first_name , users.last_name,users.id as userId
-        FROM \`images\`
-          JOIN \`posts\`
-            ON images.post_id = posts.id
-          JOIN \`users\`
-            ON users.id=posts.user_id  
-        LIMIT ${limit}
-        OFFSET ${offset} `,
-      { plain: false, type: QueryTypes.SELECT }
-    );
-    return rows;
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-};
-// search image
-exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
+exports.getAllImage = async (
+  idUser,
+  createdBy,
+  following,
+  search,
+  startDate,
+  endDate,
+  limit,
+  offset
+) => {
   try {
     //limit, offset
     let pageAsNumber = parseInt(offset);
@@ -316,23 +290,78 @@ exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
       limit = sizeAsNumber;
     }
 
-    // query: lấy tất cả ảnh của người tạo theo id
-    let createdByWhereClause = '';
+    //  lấy tất cả ảnh của người đăng bài
+    var createdByWhereClause = '';
     if (createdBy) {
+      if (!isNumber(createdBy)) {
+        var err = {
+          code: 'INVALID_INPUT',
+          message: 'Please input number is integer',
+        };
+        throw err;
+      }
       createdByWhereClause = `AND posts.user_id = ${createdBy}`;
     }
 
-    //query: lấy tất cả ảnh theo following
-    let followingWhereClause = '';
-    if (following == 'true') {
-      followingWhereClause = `AND posts.user_id IN 
+    //lấy tất cả ảnh theo following, followers
+    var followingWhereClause = '';
+    if (following) {
+      if (following == 'true') {
+        followingWhereClause = `AND (posts.user_id IN 
                               (SELECT followed_id FROM \`followers\` 
-                                WHERE follower_id = ${idUser})`;
+                                WHERE follower_id = ${idUser}))`;
+      } else if (following == 'false') {
+        followingWhereClause = `AND (posts.user_id IN 
+                              (SELECT follower_id FROM \`followers\` 
+                                WHERE followed_id = ${idUser}))`;
+      } else {
+        var err = {
+          code: 'INVALID_INPUT',
+          message:
+            'Please input following is true(following) or false(followers)',
+        };
+        throw err;
+      }
     }
+
+    // lấy ảnh theo caption, description, email, userPotst
+    var searchWhereClause = '';
+    if (search) {
+      searchWhereClause = ` AND (images.caption like '%${search}%' 
+      or posts.description like '%${search}%'
+      or users.email like '%${search}%'
+      or CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%')`;
+    }
+
+    // search date
+    var dateWhereClause = '';
+    if (startDate && endDate) {
+      // kiểm tra date nhập vào
+      if (!isDate(startDate) || !isDate(endDate)) {
+        var err = {
+          code: 'INCORRECT_DATATYPE',
+          message: 'Input date time is incorrect datatype',
+        };
+        throw err;
+      }
+
+      if (startDate.valueOf() > endDate.valueOf()) {
+        var err = {
+          code: 'INVALID_INPUT',
+          message: 'End_date must be greater than or equal to start_date',
+        };
+        throw err;
+      }
+
+      var fdate = date.format(new Date(startDate), 'YYYY/MM/DD HH:mm:ss');
+      var edate = date.format(new Date(endDate), 'YYYY/MM/DD HH:mm:ss');
+      dateWhereClause = `AND (posts.created_at between '${fdate}' and '${edate}')`;
+    }
+
     //
     const rows = await db.query(
       `SELECT images.caption,  images.path, posts.description,posts.created_at, 
-        users.first_name , users.last_name,users.id as userId
+      CONCAT(users.first_name, ' ', users.last_name) as userPost , users.email,users.id as userId
       FROM \`images\`
         JOIN \`posts\`
           ON images.post_id = posts.id
@@ -341,136 +370,26 @@ exports.getAllImage = async (idUser, createdBy, following, limit, offset) => {
         WHERE 1 = 1
         ${followingWhereClause}
         ${createdByWhereClause}
-       
+        ${searchWhereClause}
+        ${dateWhereClause}
       LIMIT ${limit}
       OFFSET ${offset} `,
       { plain: false, type: QueryTypes.SELECT }
     );
-    if (Object.keys(rows).length === 0) {
-      let err = {
-        code: 'NOT_FOUND',
-        message: 'Not found image!',
-      };
-      throw err;
-    }
-
     return rows;
   } catch (error) {
     console.log(error);
     throw error;
   }
 };
-
-//
-exports.getImageBy = async (search, limit, offset) => {
+//kiểm tra input nhập vào có là số không
+const isNumber = function (n) {
   try {
-    let pageAsNumber = Number.parseInt(offset);
-    let sizeAsNumber = Number.parseInt(limit);
-    offset = 0;
-    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
-      offset = pageAsNumber;
-    }
-    limit = 2;
-    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
-      limit = sizeAsNumber;
-    }
-
-    var searchWhereClause = '';
-    if (search) {
-      searchWhereClause = ` and images.caption like '%${search}%' or CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%'`;
-    }
-
-    const rows = await db.query(
-      `SELECT  images.caption,images.path,  posts.description,posts.created_at, CONCAT(users.first_name, ' ', users.last_name) as userPost, users.id as userId
-       FROM \`images\`
-        JOIN \`posts\`
-          ON images.post_id = posts.id
-	      JOIN \`users\` 
-		      ON users.id=posts.user_id
-        WHERE 1=1 
-          ${searchWhereClause} 
-        LIMIT ${limit}
-        OFFSET ${offset} `,
-      { plain: false, type: QueryTypes.SELECT }
-    );
-    if (Object.keys(rows).length === 0) {
-      let err = {
-        code: 'NOT_FOUND',
-        message: 'Not found image!',
-      };
-      throw err;
-    }
-    return rows;
+    return !Number.isNaN(parseInt(n)) && !isNaN(n - 0);
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };
-
-exports.getImageByDate = async (startDate, endDate, limit, offset) => {
-  try {
-    let pageAsNumber = Number.parseInt(offset);
-    let sizeAsNumber = Number.parseInt(limit);
-    offset = 0;
-    if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
-      offset = pageAsNumber;
-    }
-    limit = 2;
-    if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0) {
-      limit = sizeAsNumber;
-    }
-
-    //search date
-    if (!isDate(startDate) || !isDate(endDate)) {
-      let err = {
-        code: 'INCORRECT_DATATYPE',
-        message: 'Input date time is incorrect datatype',
-      };
-      throw err;
-    }
-
-    var fdate = date.format(new Date(startDate), 'YYYY/MM/DD HH:mm:ss');
-    var edate = date.format(new Date(endDate), 'YYYY/MM/DD HH:mm:ss');
-
-    if (fdate.valueOf() > edate.valueOf()) {
-      let err = {
-        code: 'INVALID_INPUT',
-        message: 'End date must be greater than or equal to start date',
-      };
-      throw err;
-    }
-    var dateWhereClause = '';
-    if (fdate && edate) {
-      dateWhereClause = `and posts.created_at between '${fdate}' and '${edate}'`;
-    }
-
-    const rows = await db.query(
-      `SELECT  images.caption,images.path,  posts.description,posts.created_at, users.first_name,users.last_name, users.id as userId
-       FROM \`images\`
-        JOIN \`posts\`
-          ON images.post_id = posts.id
-	      JOIN \`users\` 
-		      ON users.id=posts.user_id
-        WHERE 1=1
-          ${dateWhereClause}
-        LIMIT ${limit}
-        OFFSET ${offset} `,
-      { plain: false, type: QueryTypes.SELECT }
-    );
-    if (Object.keys(rows).length === 0) {
-      let err = {
-        code: 'NOT_FOUND',
-        message: 'Not found image!',
-      };
-      throw err;
-    }
-    return rows;
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-};
-
 //Kiểm tra chuỗi nhập vào có rỗng hay không
 const isEmpty = function (value) {
   if (!value || 0 === value.length) {

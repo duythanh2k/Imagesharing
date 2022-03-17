@@ -172,30 +172,18 @@ exports.getAllImage = async (req, res) => {
     let endDate = req.query.endDate;
     let limit = req.query.limit;
     let offset = req.query.offset;
-    let result;
 
-    result = await userService.getImageAllUser(limit, offset);
+    const result = await userService.getAllImage(
+      idUser,
+      createdBy,
+      following,
+      search,
+      startDate,
+      endDate,
+      limit,
+      offset
+    );
 
-    if (createdBy != null || following != null) {
-      result = await userService.getAllImage(
-        idUser,
-        createdBy,
-        following,
-        limit,
-        offset
-      );
-    }
-    if (search != null) {
-      result = await userService.getImageBy(search, limit, offset);
-    }
-    if (startDate != null && endDate != null) {
-      result = await userService.getImageByDate(
-        startDate,
-        endDate,
-        limit,
-        offset
-      );
-    }
     return res.json({
       status: 'Success',
       code: null,

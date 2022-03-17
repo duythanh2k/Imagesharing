@@ -200,8 +200,8 @@ paths:
           schema:
             type: string
           description: >
-            all images of following by signin user
-            example: following=true
+            all images of following by signin user or followed by user
+            example: following=true / following=false
         - name: search
           in: query
           schema:
