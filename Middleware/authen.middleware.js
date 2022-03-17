@@ -1,9 +1,13 @@
 const jwt = require('jsonwebtoken');
 
 exports.isAuth = async (req, res, next) => {
+<<<<<<< HEAD
   const accessToken = req.headers['authorization'];
   console.log(accessToken);
   console.log(req.headers.Authorization);
+=======
+  const accessToken = req.headers["authorization"];
+>>>>>>> 255463bacf5429379b80b82a84519a94e7626bfb
   if (!accessToken) {
     return res.status(401).json({
       status: 'Error',

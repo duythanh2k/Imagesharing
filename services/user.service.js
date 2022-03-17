@@ -40,11 +40,30 @@ exports.signUp = async function (user) {
     };
     throw err;
   }
+  const regex=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+  //Kiểm tra định dạng password
+  if(regex.test(user.password)==false)
+  { 
+    console.log(regex.test(user.password))
+    let err = {
+      code: 'INCORRECT_DATATYPE',
+      message: 'Password is incorrect datatype',
+    };
+    throw err;
+  }
   // Kiểm tra định dạng ngày tháng
   if (!isDate(user.dob)) {
     let err = {
       code: 'INCORRECT_DATATYPE',
       message: 'Date of birth is incorrect datatype',
+    };
+    throw err;
+  }
+  console.log(user.gender)
+  if(user.gender!="male" && user.gender!='female'){
+    let err = {
+      code: 'INCORRECT_DATA_INPUT',
+      message: 'Gender is incorrect data',
     };
     throw err;
   }
@@ -144,8 +163,10 @@ exports.getAllFollowing = async (user_id, requests) => {
   let followers;
   const findBy = [];
   try {
-    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    if (isEmpty(requests.offset)) {
       requests.offset = 0;
+    }
+    if (isEmpty(requests.limit)) {
       requests.limit = 2;
     }
 
@@ -239,8 +260,10 @@ exports.follow = async (follower_id, followed_id) => {
 exports.searchUsers = async (requests) => {
   let users;
   try {
-    if (isEmpty(requests.limit) || isEmpty(requests.offset)) {
+    if (isEmpty(requests.offset)) {
       requests.offset = 0;
+    }
+    if (isEmpty(requests.limit)) {
       requests.limit = 2;
     }
     let condition = [];
@@ -454,15 +477,7 @@ const checkFollowerExistence = async (follower_id, followed_id) => {
 
 //Conditions for search query
 const searchQuery = async (requests) => {
-  const findBy = [];
-  // If there is a query
-  // then check if it is a email or not
-  // if it is email type
-  //    search by email
-  // otherwise
-  //    search by firstname/lastname
-  if (!isEmail(requests)) {
-    findBy.push(
+    return (
       {
         first_name: {
           [Op.like]: '%' + requests + '%',
@@ -472,12 +487,10 @@ const searchQuery = async (requests) => {
         last_name: {
           [Op.like]: '%' + requests + '%',
         },
-      }
-    );
-  } else {
-    findBy.push({
-      email: requests,
-    });
-  }
-  return findBy;
+      },
+      {
+        email: {
+          [Op.like]: '%' + requests + '%',
+        },
+      });
 };

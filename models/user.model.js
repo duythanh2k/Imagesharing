@@ -32,7 +32,8 @@ const User = db.define(
       allowNull: false,
     },
     gender: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     avatar: {
       type: DataTypes.STRING,

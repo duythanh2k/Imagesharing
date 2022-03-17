@@ -17,7 +17,7 @@ paths:
         - application/json
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/User'
       responses:
@@ -41,6 +41,7 @@ paths:
                   type: string
                 password:
                   type: string
+                  format: password
       responses:
         '200':
           description: Success
@@ -86,6 +87,95 @@ paths:
       responses:
         '200':
           description: Success
+  /users:
+    get:
+      summary: search for other users
+      description: By passing in the appropriate options, you can search for
+        either name or email of user
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          description: pass an optional search string for looking up user
+          required: false
+          type: string
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success 
+  /users/following:
+    get:
+      summary: get all the users that current user follow and
+        also support search query
+      description: Display all the following users.
+        By passing in the appropriate options, you can search for
+        either name or email of an user that current user are 
+        following
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          description: pass an optional search string for looking up other following user
+          required: false
+          type: string
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success
+  /users/{id}/follow:
+    post:
+      summary: follow/unfollow an user
+      description: adds/removes a relation between follower and followed to the system
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The user that current user want to follow/unfollow
+      responses:
+        '200':
+          description: Followed/Unfollowed
   /posts/images:
     get:
       sumary: Images user
@@ -149,8 +239,8 @@ paths:
         '200':
           description: Success
     delete:
-      sumary: Update caption image
-      description: Use to update caption image
+      sumary: Delete image 
+      description: Use to delete image
       consumes:
         - application/json
       produces:
@@ -246,11 +336,13 @@ components:
         password:
           type: string
           format: password
+          description: At least one digit, one lowercase character, one uppercase character, one special character, 8 characters in length, but no more than 32.
         dob:
           type: string
           format: date
-        gender:
-          type: boolean
+        gender: 
+          type: string
+          enum: [female,male]
         avatar:
           type: string
       require:
