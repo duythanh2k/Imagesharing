@@ -169,8 +169,8 @@ paths:
           description: Success
   /users/images:
     get:
-      sumary: Get all image 
-      description: Get list images of user
+      sumary: Search all images  
+      description: Search images of all users
       consumes:
         - application/json
       produces:
@@ -201,13 +201,13 @@ paths:
             type: string
           description: >
             all images of following by signin user or followed by user
-            example: following=true / following=false
+            example: following=true(following) / following=false(followers)
         - name: search
           in: query
           schema:
             type: string
           description: >
-            all images that need to fetch by caption, name userpost,
+            all images that need to fetch by caption, userPost, email, description
             example: search=chup dep , search=do thanh
         - name: startDate
           in: query
