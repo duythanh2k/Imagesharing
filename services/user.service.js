@@ -298,6 +298,8 @@ exports.getAllImage = async (
   endDate,
   limit,
   offset
+  // sortBy,
+  // sortOrder
 ) => {
   try {
     //limit, offset
@@ -313,6 +315,11 @@ exports.getAllImage = async (
       limit = sizeAsNumber;
     }
 
+    // sort
+    // var sortClause = '';
+    // if (sortBy && sortOrder) {
+    //   sortClause = ` order by '${sortBy}' '${sortOrder}`;
+    // }
     //  lấy tất cả ảnh của người tạo
     var createdByWhereClause = '';
     if (createdBy) {
@@ -329,11 +336,11 @@ exports.getAllImage = async (
     //lấy tất cả ảnh theo following, followers
     var followingWhereClause = '';
     if (following) {
-      if (following == 'true') {
+      if (following == 'true' || following == 'TRUE') {
         followingWhereClause = `AND (posts.user_id IN 
                               (SELECT followed_id FROM \`followers\` 
                                 WHERE follower_id = ${idUser}))`;
-      } else if (following == 'false') {
+      } else if (following == 'false' || following == 'FALSE') {
         followingWhereClause = `AND (posts.user_id IN 
                               (SELECT follower_id FROM \`followers\` 
                                 WHERE followed_id = ${idUser}))`;
@@ -395,8 +402,11 @@ exports.getAllImage = async (
         ${createdByWhereClause}
         ${searchWhereClause}
         ${dateWhereClause}
+       
       LIMIT ${limit}
-      OFFSET ${offset} `,
+      OFFSET ${offset}
+      
+      `,
       { plain: false, type: QueryTypes.SELECT }
     );
     return rows;

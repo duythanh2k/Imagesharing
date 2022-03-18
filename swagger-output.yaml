@@ -259,7 +259,7 @@ paths:
           description: Success
   /users/images:
     get:
-      sumary: Search all images  
+      sumary: Search images  
       description: Search images of all users
       consumes:
         - application/json
@@ -268,16 +268,6 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-          description: The numbers of items to return
-        - name: offset
-          in: query
-          schema:
-            type: integer
-          description: The number of items to skip before starting to collect the result set
         - name: createdBy
           in: query
           schema:
@@ -315,6 +305,16 @@ paths:
           description: >
             The end date for the report when user post .
              Must be used together with `startDate`
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: The numbers of items to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: The number of items to skip before starting to collect the result set
       responses:
         '200':
           description: Success    
