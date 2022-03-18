@@ -172,8 +172,7 @@ exports.getAllImage = async (req, res) => {
     let endDate = req.query.endDate;
     let limit = req.query.limit;
     let offset = req.query.offset;
-    // let sortBy = req.query.sortBy;
-    // let sortOrder = req.query.sortOrder;
+
     const result = await userService.getAllImage(
       idUser,
       createdBy,
@@ -183,10 +182,7 @@ exports.getAllImage = async (req, res) => {
       endDate,
       limit,
       offset
-      // sortBy,
-      // sortOrder
     );
-
     return res.json({
       status: 'Success',
       code: null,

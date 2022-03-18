@@ -298,13 +298,12 @@ exports.getAllImage = async (
   endDate,
   limit,
   offset
-  // sortBy,
-  // sortOrder
 ) => {
   try {
     //limit, offset
     let pageAsNumber = parseInt(offset);
     let sizeAsNumber = parseInt(limit);
+
     offset = 0;
     if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
       offset = pageAsNumber;
@@ -315,12 +314,7 @@ exports.getAllImage = async (
       limit = sizeAsNumber;
     }
 
-    // sort
-    // var sortClause = '';
-    // if (sortBy && sortOrder) {
-    //   sortClause = ` order by '${sortBy}' '${sortOrder}`;
-    // }
-    //  lấy tất cả ảnh của người tạo
+    //  search images by created By user?
     var createdByWhereClause = '';
     if (createdBy) {
       if (!isNumber(createdBy)) {
@@ -333,7 +327,7 @@ exports.getAllImage = async (
       createdByWhereClause = `AND posts.user_id = ${createdBy}`;
     }
 
-    //lấy tất cả ảnh theo following, followers
+    //search images by following, followers of user login
     var followingWhereClause = '';
     if (following) {
       if (following == 'true' || following == 'TRUE') {
@@ -354,7 +348,7 @@ exports.getAllImage = async (
       }
     }
 
-    // lấy ảnh theo caption, description, email, userPotst
+    // search images by caption or description or email or userPost
     var searchWhereClause = '';
     if (search) {
       searchWhereClause = ` AND (images.caption like '%${search}%' 
@@ -363,10 +357,10 @@ exports.getAllImage = async (
       or CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%')`;
     }
 
-    // search date
+    // search images by date
     var dateWhereClause = '';
     if (startDate && endDate) {
-      // kiểm tra date nhập vào
+      // check date input
       if (!isDate(startDate) || !isDate(endDate)) {
         var err = {
           code: 'INCORRECT_DATATYPE',
@@ -374,7 +368,6 @@ exports.getAllImage = async (
         };
         throw err;
       }
-
       if (startDate.valueOf() > endDate.valueOf()) {
         var err = {
           code: 'INVALID_INPUT',
@@ -382,13 +375,13 @@ exports.getAllImage = async (
         };
         throw err;
       }
-
       var fdate = date.format(new Date(startDate), 'YYYY/MM/DD HH:mm:ss');
       var edate = date.format(new Date(endDate), 'YYYY/MM/DD HH:mm:ss');
+
       dateWhereClause = `AND (posts.created_at between '${fdate}' and '${edate}')`;
     }
 
-    //
+    //query
     const rows = await db.query(
       `SELECT images.caption,  images.path, posts.description,posts.created_at, 
       CONCAT(users.first_name, ' ', users.last_name) as userPost , users.email,users.id as userId
@@ -405,7 +398,6 @@ exports.getAllImage = async (
        
       LIMIT ${limit}
       OFFSET ${offset}
-      
       `,
       { plain: false, type: QueryTypes.SELECT }
     );
@@ -415,7 +407,7 @@ exports.getAllImage = async (
     throw error;
   }
 };
-//kiểm tra input nhập vào có là số không
+//check is number ?
 const isNumber = function (value) {
   try {
     return !Number.isNaN(parseInt(value));
