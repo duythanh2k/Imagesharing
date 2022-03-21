@@ -233,9 +233,10 @@ exports.uploadPost = async (req, res, next) => {
 };
 
 exports.likePost = async (req, res, next) => {
+  const post_id = req.params.id;
+  const user_id = req.idUser;
   try {
-    const postId = req.params.id;
-    let result = await postService.likePost(postId, req.idUser);
+    let result = await postService.likePost(user_id, post_id);
     res.status(200).json({
       status: "success",
       code: null,
@@ -255,11 +256,33 @@ exports.likePost = async (req, res, next) => {
 exports.commentPost = async (req, res) => {
   try {
     const postId = req.params.id;
-    const cmt = {
-      comment: req.body.comment,
-      parentComment: Number.parseInt(req.body.parentCommentId),
-    };
-    let result = await postService.commentPost(cmt, postId, req.idUser);
+    const cmt = req.body.comment;
+     await postService.commentPost(cmt, postId, req.idUser);
+    res.status(200).json({
+      status: "success",
+      code: null,
+      message: null,
+      data: null,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "Erorr",
+      code: error.code,
+      message: error.message,
+      data: null,
+    });
+  }
+};
+
+exports.replyComment = async (req, res) => {
+  try {
+    let data={
+      cmt: req.body.comment,
+      parent_id: req.params.idcmt,
+      user_id: req.idUser,
+      post_id: req.params.id
+    }
+     await postService.replyComment(data);
     res.status(200).json({
       status: "success",
       code: null,

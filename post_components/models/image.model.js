@@ -9,11 +9,22 @@ const Image = db.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
     },
-    path: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     caption: {
+      type: DataTypes.TEXT,
+    },
+    link_origin: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    link_thumbnail: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    link_post: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    metadata: {
       type: DataTypes.TEXT,
     },
     post_id: {

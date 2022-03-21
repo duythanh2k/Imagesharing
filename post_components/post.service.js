@@ -296,7 +296,7 @@ exports.likeComment = async (user_id, post_id, comment_id) => {
   try {
     let isPostExists = await checkPostExistence(post_id);
     let isCommentExists = await checkCommentExistence(comment_id);
-    let alreadyLiked = await checkCommentReactExistence(user_id, comment_id);
+    let alreadyLiked = await checkReactExistence(user_id, 1, comment_id);
     let isCommentOfPost = await checkCommentExistsInPost(comment_id, post_id);
     let message;
 
@@ -326,19 +326,21 @@ exports.likeComment = async (user_id, post_id, comment_id) => {
     if (alreadyLiked) {
       message = 'Unliked!';
       // Destroy like when call twice
-      await CommentReact.destroy({
+      await React.destroy({
         where: {
           user_id,
-          comment_id,
+          type: 1,
+          type_id: comment_id,
         },
       });
       return message;
     }
     message = 'Liked!';
     // Create a new like
-    await CommentReact.create({
+    await React.create({
       user_id,
-      comment_id,
+      type: 1,
+      type_id: comment_id,
     });
     return message;
   } catch (err) {
@@ -407,7 +409,7 @@ exports.uploadPost = async (description, image, id) => {
 exports.likePost = async (user_id, post_id) => {
   try {
     let isPostExists = await checkPostExistence(post_id);
-    let alreadyLiked = await checkPostReactExistence(user_id, post_id);
+    let alreadyLiked = await checkReactExistence(user_id, 0, post_id);
     let message;
 
     if (!isPostExists) {
@@ -420,19 +422,21 @@ exports.likePost = async (user_id, post_id) => {
     if (alreadyLiked) {
       message = 'Unliked!';
       // Destroy like when call twice
-      await PostReact.destroy({
+      await React.destroy({
         where: {
           user_id,
-          post_id,
+          type: 0,
+          type_id: post_id,
         },
       });
       return message;
     }
     message = 'Liked!';
     // Create a new like
-    await PostReact.create({
+    await React.create({
       user_id,
-      post_id,
+      type: 0,
+      type_id: post_id,
     });
     return message;
   } catch (err) {
@@ -445,49 +449,79 @@ exports.commentPost = async (cmt, postId, userId) => {
   if (!isPostExist) {
     throw new Error('Post is not exist');
   }
-  if (!isEmpty(cmt) || !isEmpty(postId)) {
+  if (isEmpty(cmt) || isEmpty(postId)) {
     throw new Error('Empty input');
   } else {
     const data = {
-      text: cmt.comment,
+      text: cmt,
       created_at: Date.now(),
-      parent_cmt_id: cmt.parentCommentId,
       user_id: userId,
       post_id: postId,
     };
     await Comment.create(data);
   }
 };
+exports.replyComment = async (data) => {
+  let isPostExist = await checkPostExistence(data.post_id);
+  if (!isPostExist) {
+    let err = {
+      code: 'NOT_EXISTS',
+      message: "Post is not exists",
+    };
+    throw err;
+  }
+  let isParentCMTExist=await checkCommentExistence(data.parent_id);
+  if(!isParentCMTExist){
+    let err = {
+      code: 'NOT_EXISTS',
+      message: "Comment is not exists",
+    };
+    throw err;
+  }
+  if (isEmpty(data.cmt)) {
+    let err = {
+      code: 'INVALID_INPUT',
+      message: "Input data is invalid",
+    };
+    throw err;
+  } else {
+    const newData = {
+      text: data.cmt,
+      created_at: Date.now(),
+      parent_cmt_id: data.parent_id,
+      user_id: data.user_id,
+      post_id: data.post_id,
+    };
+    await Comment.create(newData);
+  }
+};
 
 exports.listPost = async (user_id, sort, paging) => {
   try {
-    let limit = paging['limit'];
-    let offset = paging['offset'];
+    let limit = paging["limit"];
+    let offset = paging["offset"];
     if (isEmpty(limit) || isEmpty(offset) || isEmpty(sort)) {
       limit = 2;
       offset = 0;
     }
     let filter = [];
-    if (sort === '-created') {
-      filter.push(['created_at', 'Desc']);
+    if (sort === "-created") {
+      filter.push(["created_at", "Desc"]);
     }
-    if (!checkPostExistence) {
-      throw new Error('Post is not exist');
-    } else {
       let posts = await Post.findAll({
         where: {
           user_id: user_id,
         },
-        attributes: ['description', 'created_at'],
+        attributes: ["description", "created_at"],
         order: filter,
         include: [
-          { model: Image, attributes: ['caption', 'path'], required: true },
+          { model: Image, attributes: ["caption", "path"], required: true },
         ],
         limit: limit,
         offset: offset,
       });
       return posts;
-    }
+    
   } catch (err) {
     throw err;
   }
@@ -659,38 +693,6 @@ const checkCommentExistsInPost = async (id, post_id) => {
     throw err;
   }
 };
-const checkCommentReactExistence = async (user_id, comment_id) => {
-  //Check condition where the id exists
-  try {
-    if (!isNaN(user_id) && !isNaN(comment_id)) {
-      const like = await CommentReact.findOne({
-        where: {
-          user_id,
-          comment_id,
-        },
-      });
-      return like;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-const checkPostReactExistence = async (user_id, post_id) => {
-  //Check condition where the id exists
-  try {
-    if (!isNaN(user_id) && !isNaN(post_id)) {
-      const like = await PostReact.findOne({
-        where: {
-          user_id,
-          post_id
-        },
-      });
-      return like;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
 
 // Function check ownership
 const checkCommentOwnership = async (id, user_id) => {
@@ -709,3 +711,22 @@ const checkCommentOwnership = async (id, user_id) => {
     throw error;
   }
 };
+
+const checkReactExistence = async (user_id, type, type_id) => {
+  //Check condition where the id exists
+  try {
+    if (!isNaN(user_id) && !isNaN(type_id)) {
+      const like = await React.findOne({
+        where: {
+          user_id,
+          type,
+          type_id,
+        },
+      });
+      return like;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+

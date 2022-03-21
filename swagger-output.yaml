@@ -52,7 +52,7 @@ paths:
     get:
       tags:
         - User service
-      summary: Profile
+      summary: Profile of current user
       description: Get infomation of user
       consumes:
         - application/json
@@ -66,7 +66,7 @@ paths:
     put:
       tags:
         - User service
-      summary: Update Profile
+      summary: Update Profile of current user
       description: Update profile of user
       consumes:
         - application/json
@@ -162,7 +162,7 @@ paths:
     get:
       tags:
         - Post service
-      summary: Images user
+      summary: Images user of current user
       description: Get list images of user
       consumes:
         - application/json
@@ -198,7 +198,7 @@ paths:
     put:
       tags:
         - Post service
-      summary: Update caption image
+      summary: Update caption image of current user
       description: Use to update caption image
       consumes:
         - application/json
@@ -227,7 +227,7 @@ paths:
     delete:
       tags:
         - Post service
-      summary: Delete image 
+      summary: Delete image of current user
       description: Use to delete image
       consumes:
         - application/json
@@ -302,7 +302,7 @@ paths:
     post:
       tags:
         - Post service
-      summary: Upload post
+      summary: Upload new post
       description: Upload post with number image
       consumes:
         - application/json
@@ -318,10 +318,15 @@ paths:
               properties:
                 description:
                   type: string    
-                caption:
-                  type: string
-                token:
-                  type: string               
+                images_arr:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      caption: 
+                        type: string
+                      token: 
+                        type: string               
       responses:
         '200':
           description: success;    
@@ -366,6 +371,42 @@ paths:
           schema:
             type: integer
           description: The post id
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Success
+  /posts/{id}/comments/{idcmt}:  
+    post:
+      tags:
+        - Post service
+      summary: Reply comment
+      description: User reply a comment of an other user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id   
+          required: true
+          schema:
+            type: integer
+          description: The post id
+        - in: path
+          name: idcmt   
+          required: true
+          schema:
+            type: integer
+          description: Comment parent id
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -434,10 +475,10 @@ paths:
       responses:
         '200':
           description: Success  
-  /users/{id}/posts:
+  /posts/users/{id}/post:
     get:
       tags:
-        - User service
+        - Post service
       summary: List post
       description: Use to list all post of an user
       consumes:
@@ -452,22 +493,27 @@ paths:
           required: true
           schema:
             type: integer
-            description: The post id
-        - in: query
-          name: sort
-          schema:
-            type: integer
-            description: Display post of user by time created
+          description: The post id
         - in: query
           name: limit
           schema:
             type: integer
-            description: The numbers of items to return 
+          description: The numbers of items to return
         - in: query
           name: offset
           schema:
+            type: integer
+          description: The number of items to skip before starting to collect the result set
+        - in: query
+          name: sort_by
+          schema:
             type: string
-            description: The number of items to skip before starting to collect the result sets
+          description: sort by attribute
+        - in: query
+          name: order_by
+          schema:
+            type: string
+          description: sort ascending or descending
       responses:
         '200':
           description: Success
@@ -855,8 +901,7 @@ components:
         - recipient
         - sender
         - type 
-        - type_id
-    
+        - type_id  
   securitySchemes:
     bearerAuth:
       type: apiKey
