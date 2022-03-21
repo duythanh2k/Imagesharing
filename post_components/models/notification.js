@@ -6,38 +6,33 @@ const { Sequelize, DataTypes, Deferrable } = require("sequelize");
 const CommentReact = db.define(
   "CommentReacts",
   {
-    user_id: {
+    id:{
       type: DataTypes.INTEGER,
       primaryKey: true,
-      allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-        deferrable: Deferrable.INITIALLY_IMMEDIATE,
-      },
+      allowNull: false
     },
-    comment_id: {
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: false 
+    },
+    recipient: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
       allowNull: false,
-      references: {
-        model: Comment,
-        key: "id",
-        deferrable: Deferrable.INITIALLY_IMMEDIATE,
-      },
+    },
+    sender: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    type:{
+      type: DataTypes.BOOLEAN,
+      allowNull:false,
+    },
+    type_id:{
+      type: DataTypes.INTEGER,
+      allowNull:false,
     },
   },
   {
-    index: [
-      {
-        name: "index_cmtr1",
-        fields: ["user_id"],
-      },
-      {
-        name: "index_cmtr2",
-        fields: ["comment_id"],
-      },
-    ],
     timestamps: false,
     underscored: true,
   }

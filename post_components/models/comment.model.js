@@ -22,6 +22,10 @@ const Comment = db.define(
     parent_cmt_id: {
       type: DataTypes.INTEGER,
     },
+    count_react:{
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
