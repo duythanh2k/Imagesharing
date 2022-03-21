@@ -72,7 +72,6 @@ exports.getAllCmtDesc = async (req, res) => {
     let postId = req.params.id;
     let requests = req.query;
     let results = await postService.getAllCmtDesc(postId, requests);
-
     return res.json({
       status: "Success",
       code: null,
@@ -168,17 +167,10 @@ exports.likeComment = async (req, res) => {
     });
   }
 };
-exports.uploadImage = async (req, res, next) => {
+exports.uploadLink = async (req, res, next) => {
   try {
     let numberImage = Number.parseInt(req.query.numberOfImage);
-    if (req.files.length === numberImage) {
-      pictures = req.files.map((file) => {
-        return file["path"];
-      });
-    }else{
-      throw new Error('Please select image');
-    }
-    let result = await postService.uploadImage(numberImage, pictures);
+    let result = await postService.uploadLink(numberImage);
     res.status(200).json({
       status: "Success",
       code: null,
@@ -195,14 +187,34 @@ exports.uploadImage = async (req, res, next) => {
   }
 };
 
+exports.uploadImage = async(req,res,next)=>{
+   try {   
+      const pictures =req.path;
+      let result = await postService.uploadImage(pictures);
+      res.status(200).json({
+        status: "Success",
+        code: null,
+        message: null,
+        data: result,
+      });
+   } catch (error) {
+    res.status(400).json({
+      status: "Error",
+      code: error.code,
+      message: error.message,
+      data: null,
+    });
+   }
+}
 exports.uploadPost = async (req, res, next) => {
   try {
     const description = req.body.description;
     const image = [];
     image.push({
       caption: req.body.caption,
-      uploadToken: req.body.token,
+      path: req.body.token,
     });
+    console.log(image)
     let result = await postService.uploadPost(description, image, req.idUser);
     res.status(200).json({
       status: "Success",
@@ -221,10 +233,9 @@ exports.uploadPost = async (req, res, next) => {
 };
 
 exports.likePost = async (req, res, next) => {
-  const post_id = req.params.id;
-  const user_id = req.idUser;
   try {
-    let result = await postService.likePost(post_id, user_id);
+    const postId = req.params.id;
+    let result = await postService.likePost(postId, req.idUser);
     res.status(200).json({
       status: "success",
       code: null,
@@ -302,7 +313,8 @@ exports.updatePost = async (req, res, next) => {
       postId,
       description,
       image,
-      req.idUser
+      req.idUser,
+      req.path
     );
     res.status(200).json({
       status: "success",

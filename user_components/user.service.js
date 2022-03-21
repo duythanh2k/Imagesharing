@@ -336,6 +336,7 @@ exports.getAllImage = async (
     //limit, offset
     let pageAsNumber = parseInt(offset);
     let sizeAsNumber = parseInt(limit);
+
     offset = 0;
     if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
       offset = pageAsNumber;
@@ -346,9 +347,10 @@ exports.getAllImage = async (
       limit = sizeAsNumber;
     }
 
-    //  lấy tất cả ảnh của người tạo
+    //  search images by created By user?
     var createdByWhereClause = '';
     if (createdBy) {
+      // check if createdBy is number integer
       if (!isNumber(createdBy)) {
         var err = {
           code: 'INVALID_INPUT',
@@ -356,21 +358,25 @@ exports.getAllImage = async (
         };
         throw err;
       }
+      //query search images by user_id
       createdByWhereClause = `AND posts.user_id = ${createdBy}`;
     }
 
-    //lấy tất cả ảnh theo following, followers
+    //search images by following, followers of user login
     var followingWhereClause = '';
     if (following) {
-      if (following == 'true') {
+      //check if following input is true/false
+      // then data return images by following/followers
+      if (following == 'true' || following == 'TRUE') {
         followingWhereClause = `AND (posts.user_id IN 
                               (SELECT followed_id FROM \`followers\` 
                                 WHERE follower_id = ${idUser}))`;
-      } else if (following == 'false') {
+      } else if (following == 'false' || following == 'FALSE') {
         followingWhereClause = `AND (posts.user_id IN 
                               (SELECT follower_id FROM \`followers\` 
                                 WHERE followed_id = ${idUser}))`;
       } else {
+        //then data return error
         var err = {
           code: 'INVALID_INPUT',
           message:
@@ -380,7 +386,7 @@ exports.getAllImage = async (
       }
     }
 
-    // lấy ảnh theo caption, description, email, userPotst
+    // search images by caption or description or email or userPost
     var searchWhereClause = '';
     if (search) {
       searchWhereClause = ` AND (images.caption like '%${search}%' 
@@ -389,10 +395,10 @@ exports.getAllImage = async (
       or CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%')`;
     }
 
-    // search date
+    // search images by date
     var dateWhereClause = '';
     if (startDate && endDate) {
-      // kiểm tra date nhập vào
+      // check date input
       if (!isDate(startDate) || !isDate(endDate)) {
         var err = {
           code: 'INCORRECT_DATATYPE',
@@ -400,7 +406,6 @@ exports.getAllImage = async (
         };
         throw err;
       }
-
       if (startDate.valueOf() > endDate.valueOf()) {
         var err = {
           code: 'INVALID_INPUT',
@@ -408,13 +413,13 @@ exports.getAllImage = async (
         };
         throw err;
       }
-
       var fdate = date.format(new Date(startDate), 'YYYY/MM/DD HH:mm:ss');
       var edate = date.format(new Date(endDate), 'YYYY/MM/DD HH:mm:ss');
+      //query search image by date
       dateWhereClause = `AND (posts.created_at between '${fdate}' and '${edate}')`;
     }
 
-    //
+    //query search
     const rows = await db.query(
       `SELECT images.caption,  images.path, posts.description,posts.created_at, 
       CONCAT(users.first_name, ' ', users.last_name) as userPost , users.email,users.id as userId
@@ -428,17 +433,18 @@ exports.getAllImage = async (
         ${createdByWhereClause}
         ${searchWhereClause}
         ${dateWhereClause}
+       
       LIMIT ${limit}
-      OFFSET ${offset} `,
+      OFFSET ${offset}
+      `,
       { plain: false, type: QueryTypes.SELECT }
     );
     return rows;
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };
-//kiểm tra input nhập vào có là số không
+//check is number ?
 const isNumber = function (value) {
   try {
     return !Number.isNaN(parseInt(value));

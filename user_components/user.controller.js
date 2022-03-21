@@ -183,7 +183,6 @@ exports.getAllImage = async (req, res) => {
       limit,
       offset
     );
-
     return res.json({
       status: 'Success',
       code: null,

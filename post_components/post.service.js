@@ -1,7 +1,6 @@
 const Post = require('./models/post.model');
-const PostReact = require('./models/post_react.model');
 const Comment = require('./models/comment.model');
-const CommentReact = require('./models/comment_react.model');
+const React = require('./models/react.model');
 const Image = require('./models/image.model');
 const jwt = require('jsonwebtoken');
 const { Sequelize, QueryTypes } = require('sequelize');

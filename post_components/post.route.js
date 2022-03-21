@@ -14,12 +14,14 @@ router.put("/:id/comments/:comment_id", authenMiddleware.isAuth, postController.
 router.delete("/:id/comments/:comment_id", authenMiddleware.isAuth, postController.deleteComment);
 router.post("/:id/comments/:comment_id/like", authenMiddleware.isAuth, postController.likeComment);
 
-router.get('/upload', authenMiddleware.isAuth, upload, postController.uploadImage);
-router.post('/', authenMiddleware.isAuth, postController.uploadPost);
-router.post('/:id/like', authenMiddleware.isAuth, postController.likePost);
-router.post('/:id/comment', authenMiddleware.isAuth, postController.commentPost);
+router.get('/getUrlUpload', authenMiddleware.isAuth ,postController.uploadLink);
+router.post('/', authenMiddleware.isAuth , postController.uploadPost);
+router.post('/uploadImage',authenMiddleware.isAuth,upload,postController.uploadImage);
+router.post('/:id/like', authenMiddleware.isAuth, postController.likePost );
+router.post('/:id/comment', authenMiddleware.isAuth , postController.commentPost);
 router.put('/:id', authenMiddleware.isAuth, postController.updatePost);
 router.delete('/:id', authenMiddleware.isAuth, postController.deletePost);
 router.get('/users/:id/post', authenMiddleware.isAuth, postController.listPost);
+
 
 module.exports = router;
