@@ -1,10 +1,8 @@
 const db      = require("../../util/db");
-const User    = require("../../user_components/models/user.model");
-const Comment = require("./comment.model");
 const { Sequelize, DataTypes, Deferrable } = require("sequelize");
 
-const CommentReact = db.define(
-  "CommentReacts",
+const Notification = db.define(
+  "Notifications",
   {
     id:{
       type: DataTypes.INTEGER,
@@ -38,6 +36,6 @@ const CommentReact = db.define(
   }
 );
 
-// CommentReact.sync({ force: false });
+// Notification.sync({ force: false });
 
-module.exports = CommentReact;
+module.exports = Notification;

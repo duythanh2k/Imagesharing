@@ -19,6 +19,7 @@ router.post('/', authenMiddleware.isAuth , postController.uploadPost);
 router.post('/uploadImage',authenMiddleware.isAuth,upload,postController.uploadImage);
 router.post('/:id/like', authenMiddleware.isAuth, postController.likePost );
 router.post('/:id/comment', authenMiddleware.isAuth , postController.commentPost);
+router.post('/:id/comments/:idcmt', authenMiddleware.isAuth , postController.replyComment);
 router.put('/:id', authenMiddleware.isAuth, postController.updatePost);
 router.delete('/:id', authenMiddleware.isAuth, postController.deletePost);
 router.get('/users/:id/post', authenMiddleware.isAuth, postController.listPost);

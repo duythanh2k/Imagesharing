@@ -296,17 +296,16 @@ exports.searchUsers = async (requests) => {
       requests.offset = 0;
     }
     if (isEmpty(requests.limit)) {
-      requests.limit = 20;
+      requests.limit = 2;
     }
-    let condition = [];
-    const findBy = await searchQuery(requests.search);
+    let condition;
     // Check if there is no query
     // then data return all users
     if (!requests.search) {
       condition = null;
     } else {
       // OR operator by require ( `const {Op} = require('sequelize') )
-      condition.push({ [Op.or]: findBy });
+      condition = await searchQuery(requests.search);
     }
     users = User.findAll({
       attributes: ["id","first_name","last_name","dob","gender","avatar"],
@@ -516,21 +515,26 @@ const checkFollowerExistence = async (follower_id, followed_id) => {
 
 //Conditions for search query
 const searchQuery = async (requests) => {
-  return (
-    {
-      first_name: {
-        [Op.like]: '%' + requests + '%',
+  return {
+    [Op.or]: [
+      {
+        first_name: {
+          [Op.like]: '%' + requests + '%',
+        },
       },
-    },
-    {
-      last_name: {
-        [Op.like]: '%' + requests + '%',
+      {
+        last_name: {
+          [Op.like]: '%' + requests + '%',
+        },
       },
-    },
-    {
-      email: {
-        [Op.like]: '%' + requests + '%',
+      {
+        email: {
+          [Op.like]: '%' + requests + '%',
+        },
       },
-    }
-  );
+      {
+        gender: requests
+      }
+    ]
+  };
 };
