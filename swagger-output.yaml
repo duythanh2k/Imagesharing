@@ -5,11 +5,12 @@ info:
   version: 0.1.9
 servers:
   - url: http://localhost:3000
-tags: [{ name: 'Users', description: 'Endpoint api' }]
 paths:
   /signup:
     post:
-      sumary: Sign up
+      tags:
+        - User service
+      summary: Sign up
       description: Sign up a account user
       consumes:
         - application/json
@@ -25,7 +26,9 @@ paths:
           description: Success
   /signin:
     post:
-      sumary: Sign in
+      tags:
+        - User service
+      summary: Sign in
       description: Sign in application
       consumes:
         - application/json
@@ -47,7 +50,9 @@ paths:
           description: Success
   /users/profile:
     get:
-      sumary: Profile
+      tags:
+        - User service
+      summary: Profile
       description: Get infomation of user
       consumes:
         - application/json
@@ -59,7 +64,9 @@ paths:
         '200':
           description: Success
     put:
-      sumary: Update Profile
+      tags:
+        - User service
+      summary: Update Profile
       description: Update profile of user
       consumes:
         - application/json
@@ -81,185 +88,18 @@ paths:
                   type: string
                   format: date
                 gender:
-                  type: boolean
+                  type: string
+                  enum: [male,female]
                 avatar:
                   type: string
       responses:
         '200':
           description: Success
-  /users:
-    get:
-      summary: search for other users
-      description: By passing in the appropriate options, you can search for
-        either name or email of user
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: query
-          name: search
-          description: pass an optional search string for looking up user
-          required: false
-          type: string
-        - in: query
-          name: offset
-          description: number of records to skip for pagination
-          type: integer
-          format: int32
-          minimum: 0
-        - in: query
-          name: limit
-          description: maximum number of records to return
-          type: integer
-          format: int32
-          minimum: 0
-          maximum: 50
-      responses:
-        '200':
-          description: Success 
-  /users/following:
-    get:
-      summary: get all the users that current user follow and
-        also support search query
-      description: Display all the following users.
-        By passing in the appropriate options, you can search for
-        either name or email of an user that current user are 
-        following
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: query
-          name: search
-          description: pass an optional search string for looking up other following user
-          required: false
-          type: string
-        - in: query
-          name: offset
-          description: number of records to skip for pagination
-          type: integer
-          format: int32
-          minimum: 0
-        - in: query
-          name: limit
-          description: maximum number of records to return
-          type: integer
-          format: int32
-          minimum: 0
-          maximum: 50
-      responses:
-        '200':
-          description: Success
-  /users/{id}/follow:
-    post:
-      summary: follow/unfollow an user
-      description: adds/removes a relation between follower and followed to the system
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: The user that current user want to follow/unfollow
-      responses:
-        '200':
-          description: Followed/Unfollowed
-  /posts/images:
-    get:
-      sumary: Images user
-      description: Get list images of user
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: query
-          name: limit
-          schema:
-            type: integer
-          description: The numbers of items to return
-        - in: query
-          name: offset
-          schema:
-            type: integer
-          description: The number of items to skip before starting to collect the result set
-        - in: query
-          name: sort_by
-          schema:
-            type: string
-          description: sort by attribute
-        - in: query
-          name: order_by
-          schema:
-            type: string
-          description: sort ascending or descending
-      responses:
-        '200':
-          description: Success
-  /posts/images/{id}:
-    put:
-      sumary: Update caption image
-      description: Use to update caption image
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id # Note the name is the same as in the path
-          required: true
-          schema:
-            type: integer
-          description: The image id
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                caption:
-                  type: string
-      responses:
-        '200':
-          description: Success
-    delete:
-      sumary: Delete image 
-      description: Use to delete image
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id # Note the name is the same as in the path
-          required: true
-          schema:
-            type: integer
-          description: The image id
-      responses:
-        '200':
-          description: Success
   /users/images:
     get:
-      sumary: Search images  
+      tags:
+        - User service
+      summary: Search images  
       description: Search images of all users
       consumes:
         - application/json
@@ -317,9 +157,419 @@ paths:
           description: The number of items to skip before starting to collect the result set
       responses:
         '200':
+          description: Success
+  /posts/images:
+    get:
+      tags:
+        - Post service
+      summary: Images user
+      description: Get list images of user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: The numbers of items to return
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: The number of items to skip before starting to collect the result set
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+          description: sort by attribute
+        - in: query
+          name: order_by
+          schema:
+            type: string
+          description: sort ascending or descending
+      responses:
+        '200':
+          description: Success
+  /posts/images/{id}:
+    put:
+      tags:
+        - Post service
+      summary: Update caption image
+      description: Use to update caption image
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+          description: The image id
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                caption:
+                  type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      tags:
+        - Post service
+      summary: Delete image 
+      description: Use to delete image
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+          description: The image id
+      responses:
+        '200':
+          description: Success  
+  /posts/getUrlUpload:  
+    get:
+      tags:
+        - Post service
+      summary: Get link
+      description: User get link to upload image
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: numberOfImage 
+          required: true
+          schema:
+            type: integer
+          description: Number of image to upload
+      responses:
+        '200':
           description: Success    
+  /posts/uploadImage:  
+    post:
+      tags:
+        - Post service
+      sumary: Upload image
+      description: User select file to upload image
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: uploadToken  
+          required: true
+          schema:
+            type: string
+          description: 
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Success                      
+  /posts:
+    post:
+      tags:
+        - Post service
+      summary: Upload post
+      description: Upload post with number image
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string    
+                caption:
+                  type: string
+                token:
+                  type: string               
+      responses:
+        '200':
+          description: success;    
+  /posts/{id}/like:
+    post: 
+      tags:
+        - Post service  
+      summary: Like post
+      description: Like post 
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id   
+          required: true
+          schema:
+            type: integer
+          description: The post id     
+      responses:
+        '200':
+          description: success;    
+  /posts/{id}/comment:  
+    post:
+      tags:
+        - Post service
+      summary: Comment post
+      description: User comment into posts
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id   
+          required: true
+          schema:
+            type: integer
+          description: The post id
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Success         
+  /posts/{id}:  
+    put:
+      tags:
+        - Post service
+      summary: Update post
+      description: Use to update post of user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id   
+          required: true
+          schema:
+            type: integer
+          description: The post id
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string    
+                caption:
+                  type: string
+                token:
+                  type: string 
+                parentCommentId:
+                  type: string        
+      responses:
+        '200':
+          description: Success
+    delete:
+      tags:
+        - Post service
+      summary: Delete post
+      description: Use to delete post of user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id   # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+          description: The post id
+      responses:
+        '200':
+          description: Success  
+  /users/{id}/posts:
+    get:
+      tags:
+        - User service
+      summary: List post
+      description: Use to list all post of an user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id   # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            description: The post id
+        - in: query
+          name: sort
+          schema:
+            type: integer
+            description: Display post of user by time created
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            description: The numbers of items to return 
+        - in: query
+          name: offset
+          schema:
+            type: string
+            description: The number of items to skip before starting to collect the result sets
+      responses:
+        '200':
+          description: Success
+  /users:
+    get:
+      tags:
+        - User service
+      summary: search for other users
+      description: By passing in the appropriate options, you can search for
+        either name or email of user
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          description: pass an optional search string for looking up user
+          required: false
+          type: string
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success 
+  /users/following:
+    get:
+      tags:
+        - User service
+      summary: get all the users that current user follow and
+        also support search query
+      description: Display all the following users.
+        By passing in the appropriate options, you can search for
+        either name or email of an user that current user are 
+        following
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          description: pass an optional search string for looking up other following user
+          required: false
+          type: string
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success
+  /users/{id}/follow:
+    post:
+      tags:
+        - User service
+      summary: follow/unfollow an user
+      description: adds/removes a relation between follower and followed to the system
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The user that current user want to follow/unfollow
+      responses:
+        '200':
+          description: Followed/Unfollowed
   /posts/{id}/comments:
     get:
+      tags:
+        - Post service
       summary: show all comments of a post
       description: display all the comments of a post
       consumes:
@@ -362,7 +612,44 @@ paths:
         '200':
           description: Success
   /posts/{id}/comments/{comment_id}:
+    put:  
+      tags:
+        - Post service
+      summary: edit a comment
+      description: update a comment of a post
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The post that contains all the comments that you are looking for
+        - in: path
+          name: comment_id
+          required: true
+          schema:
+            type: integer
+          description: The comment that you want to edit
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+      responses:
+        '200':
+          description: Updated
     delete:
+      tags:
+        - Post service
       summary: remove a comment
       description: delete a comment of a post
       consumes:
@@ -389,6 +676,8 @@ paths:
           description: Deleted
   /posts/{id}/comments/{comment_id}/like:
     post:
+      tags:
+        - Post service
       summary: like/unlike a comment
       description: adds/removes a relation between user and liked comment to the system
       consumes:
@@ -459,6 +748,10 @@ components:
         created_at:
           type: string
           format: date-time
+        count_comment: 
+          type: integer
+        count_react: 
+          type: integer
         use_id:
           type: integer
           readOnly: true
@@ -466,21 +759,21 @@ components:
         - id
         - created_at
         - user_id
-    PostReact:
+        - count_comment
+        - count_react
+    React:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         user_id:
           type: integer
           readOnly: true
-        post_id:
+        type:
+          type: boolean
+        type_id:
           type: integer
-          readOnly: true
       require:
-        - id
-        - post_id
+        - type
+        - type_id
         - user_id
     Image:
       type: object
@@ -525,6 +818,8 @@ components:
         parent_cmt_id:
           type: integer
           readOnly: true
+        count_react:
+          type: integer
         user_id:
           type: integer
           readOnly: true
@@ -535,20 +830,32 @@ components:
         - id
         - text
         - created_at
+        - count_react
         - user_id
         - post_id
-    CommentReact:
+    Notification:
       type: object
       properties:
-        user_id:
+        id:
           type: integer
           readOnly: true
-        comment_id:
+        content:
+          type: string
+        recipient:
           type: integer
-          readOnly: true
+        sender:
+          type: integer
+        type:
+          type: boolean
+        type_id:
+          type: integer
       require:
-        - user_id
-        - comment_id
+        - id
+        - content
+        - recipient
+        - sender
+        - type 
+        - type_id
     
   securitySchemes:
     bearerAuth:
