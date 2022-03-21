@@ -730,6 +730,10 @@ components:
         created_at:
           type: string
           format: date-time
+        count_comment: 
+          type: integer
+        count_react: 
+          type: integer
         use_id:
           type: integer
           readOnly: true
@@ -737,21 +741,21 @@ components:
         - id
         - created_at
         - user_id
-    PostReact:
+        - count_comment
+        - count_react
+    React:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         user_id:
           type: integer
           readOnly: true
-        post_id:
+        type:
+          type: boolean
+        type_id:
           type: integer
-          readOnly: true
       require:
-        - id
-        - post_id
+        - type
+        - type_id
         - user_id
     Image:
       type: object
@@ -796,6 +800,8 @@ components:
         parent_cmt_id:
           type: integer
           readOnly: true
+        count_react:
+          type: integer
         user_id:
           type: integer
           readOnly: true
@@ -806,20 +812,32 @@ components:
         - id
         - text
         - created_at
+        - count_react
         - user_id
         - post_id
-    CommentReact:
+    Notification:
       type: object
       properties:
-        user_id:
+        id:
           type: integer
           readOnly: true
-        comment_id:
+        content:
+          type: string
+        recipient:
           type: integer
-          readOnly: true
+        sender:
+          type: integer
+        type:
+          type: boolean
+        type_id:
+          type: integer
       require:
-        - user_id
-        - comment_id
+        - id
+        - content
+        - recipient
+        - sender
+        - type 
+        - type_id
     
   securitySchemes:
     bearerAuth:
