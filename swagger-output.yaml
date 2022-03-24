@@ -20,7 +20,33 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              type: object
+              properties:
+                id:
+                  type: integer
+                  readOnly: true
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  description: At least one digit, one lowercase character, one uppercase character, one special character, 8 characters in length, but no more than 32.
+                re_enter_password:
+                  type: string
+                  format: password
+                dob:
+                  type: string
+                  format: date
+                gender: 
+                  type: string
+                  enum: [female,male]
+                avatar:
+                  type: string
       responses:
         '200':
           description: Success
@@ -266,38 +292,7 @@ paths:
           description: Number of image to upload
       responses:
         '200':
-          description: Success    
-  /posts/uploadImage:  
-    post:
-      tags:
-        - Post service
-      sumary: Upload image
-      description: User select file to upload image
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: query
-          name: uploadToken  
-          required: true
-          schema:
-            type: string
-          description: 
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-      responses:
-        '200':
-          description: Success                      
+          description: Success                         
   /posts:
     post:
       tags:
@@ -321,12 +316,7 @@ paths:
                 images_arr:
                   type: array
                   items:
-                    type: object
-                    properties:
-                      caption: 
-                        type: string
-                      token: 
-                        type: string               
+                    type: string
       responses:
         '200':
           description: success;    
@@ -445,12 +435,10 @@ paths:
               properties:
                 description:
                   type: string    
-                caption:
-                  type: string
-                token:
-                  type: string 
-                parentCommentId:
-                  type: string        
+                images_arr:
+                  type: array
+                  items:
+                    type: string     
       responses:
         '200':
           description: Success
@@ -827,9 +815,15 @@ components:
         id:
           type: integer
           readOnly: true
-        path:
-          type: string
         caption:
+          type: string
+        link_origin:
+          type: string
+        link_thumbnail:
+          type: string
+        link_post:
+          type: string
+        metadata:
           type: string
         post_id:
           type: integer
@@ -891,6 +885,9 @@ components:
           type: integer
         sender:
           type: integer
+        created_at:
+          type: string
+          format: date-time
         type:
           type: boolean
         type_id:

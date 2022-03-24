@@ -3,8 +3,15 @@ const Comment = require('./models/comment.model');
 const React = require('./models/react.model');
 const Image = require('./models/image.model');
 const jwt = require('jsonwebtoken');
-const { Sequelize, QueryTypes } = require('sequelize');
-
+const Sharp=require('sharp');
+const { Sequelize, QueryTypes, Op } = require('sequelize');
+const aws =require('aws-sdk');
+const s3 = new aws.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: "ap-southeast-1",
+  signatureVersion: "v4",
+});
 //Lấy tất cả các ảnh của user login
 exports.getAllImageUser = async (idUser, requests) => {
   try {
@@ -22,7 +29,7 @@ exports.getAllImageUser = async (idUser, requests) => {
       requests.order_by = 'DESC';
     }
     let result = await Image.findAll({
-      attributes: ['id', 'path', 'caption'],
+      // attributes: ['id', 'path', 'caption'],
       include: [
         {
           model: Post,
@@ -94,7 +101,9 @@ exports.updateCapImage = async (idImage, idUser, newCaption) => {
 exports.deleteImage = async (idUser, idImage) => {
   try {
     //Kiểm tra image có tồn tại hay không
-    let check = await Image.findOne({ where: { id: idImage } });
+    let check = await Image.findOne({
+      attributes:['link_origin'],
+       where: { id: idImage } });
     if (!check) {
       let err = {
         code: 'NOT_FOUND',
@@ -125,6 +134,8 @@ exports.deleteImage = async (idUser, idImage) => {
     await Image.destroy({
       where: { id: idImage },
     });
+    let key =check.dataValues.link_origin.split('/');
+    await deleteImgS3(key[1]);
     return;
   } catch (err) {
     throw err;
@@ -349,38 +360,53 @@ exports.likeComment = async (user_id, post_id, comment_id) => {
   }
 };
 
-exports.uploadImage = async (numberImage, image) => {
-  if (typeof numberImage !== 'number')
-    throw new Error('ERROR_CODE.INVALID_INPUT');
-  let arrayImage = [numberImage];
+
+exports.generateUploadUrl = async (numberImage) => {
+  let imageInfor = [];
   for (var i = 0; i < numberImage; i++) {
-    arrayImage[i] = {
-      uploadLink: 'link' + (i + 1),
-      uploadToken: jwt.sign('' + image[i], process.env.ACCESS_TOKEN_SECRET, {
-        algorithm: 'HS256',
-      }),
+    const imageName =
+      "origin/"+Date.now() + "-" + Math.round(Math.random() * 1e9) + ".png";
+    const params = {
+      Bucket: "savvycom-insta-app",
+      Key: imageName,
     };
-  }
-  return arrayImage;
+    const uploadURL = await s3.getSignedUrlPromise("putObject", params);
+    const urlImage = uploadURL.split("?")[0];
+    imageInfor.push({
+      uploadURL : uploadURL,
+      urlImage : urlImage
+    })
+  };
+  return imageInfor;
 };
 
 exports.uploadPost = async (description, image, id) => {
   try {
-    if (typeof description !== 'string')
-      throw new Error('ERROR_CODE.INVALID_INPUT');
-    if (!isEmpty(description)) throw new Error('ERROR_CODE.INVALID_INPUT');
+    if (typeof description !== "string")
+      throw new Error("ERROR_CODE.INVALID_INPUT");
+    if (isEmpty(description)) throw new Error("ERROR_CODE.INVALID_INPUT");
+    let thumnail={type: 'thumbnail', width: 60 , height: 60}
+    let imgpost={type: 'imgpost', width:  1600, height: 900}
     let arrayImage = [];
-    for (var i = 0; i < image[0].uploadToken.length; i++) {
-      let path = jwt.verify(
-        image[0].uploadToken[i],
-        process.env.ACCESS_TOKEN_SECRET
-      );
+    let arr=image.split(',');
+    for (let i = 0; i < arr.length; i++) {  
+      let linkOrigin=arr[i].split("/");
+      let origin= linkOrigin[4] ;
+      await checkImageUpload(origin);
+      let metadata={
+        height : '',
+        width:  '',
+        extendsion: '.png'
+      };
       arrayImage.push({
-        caption: image[0]['caption'][i],
-        path: path,
+        link_origin : 'origin/'+origin,
+        link_thumbnail : `thumnail/${origin}`,
+        link_post : `post/${origin}`,
+        metadata: metadata
       });
+      await getImageResize(origin,thumnail);
+      await getImageResize(origin,imgpost);
     }
-    console.log(arrayImage);
     const dataPost = {
       description: description,
       created_at: Date.now(),
@@ -388,12 +414,13 @@ exports.uploadPost = async (description, image, id) => {
     };
     let post = await Post.create(dataPost);
     let post_id = post.dataValues.id;
-    console.log(post_id);
-    for (var i = 0; i < arrayImage.length; i++) {
+    for (let i = 0; i < arrayImage.length; i++) {
       await Image.create({
-        caption: arrayImage[i]['caption'],
-        path: arrayImage[i]['path'],
-        post_id: post_id,
+        link_origin : arrayImage[i].link_origin,
+        link_thumbnail : arrayImage[i].link_thumbnail,
+        link_post : arrayImage[i].link_post,
+        metadata:arrayImage[i].metadata,
+        post_id: post_id
       });
     }
     const result = {
@@ -411,7 +438,6 @@ exports.likePost = async (user_id, post_id) => {
     let isPostExists = await checkPostExistence(post_id);
     let alreadyLiked = await checkReactExistence(user_id, 0, post_id);
     let message;
-
     if (!isPostExists) {
       let err = {
         code: 'NOT_FOUND',
@@ -515,7 +541,7 @@ exports.listPost = async (user_id, sort, paging) => {
         attributes: ["description", "created_at"],
         order: filter,
         include: [
-          { model: Image, attributes: ["caption", "path"], required: true },
+          { model: Image,  required: true },
         ],
         limit: limit,
         offset: offset,
@@ -533,11 +559,11 @@ exports.updatePost = async (post_id, description, image, user_id) => {
     if (!isPostExist) {
       throw new Error('Post is not exist');
     }
-    if (!description || typeof description !== 'string')
-      throw new Error('ERROR_CODE.INVALID_INPUT');
-    if (!isEmpty(post_id) || !isEmpty(description)) {
-      throw new Error('Empty input');
-    }
+    // if (!description || typeof description !== 'string')
+    //   throw new Error('ERROR_CODE.INVALID_INPUT');
+    // if (!isEmpty(post_id) || !isEmpty(description)) {
+    //   throw new Error('Empty input');
+    // }
     let checkOwner = await Post.findAll({
       where: {
         user_id: user_id,
@@ -551,28 +577,41 @@ exports.updatePost = async (post_id, description, image, user_id) => {
       };
       throw err;
     }
+    let thumnail={type: 'thumbnail', width: 60 , height: 60}
+    let imgpost={type: 'imgpost', width:  1600, height: 900}
     //check if dont update image
-    if (image[0]['uploadToken'][0] !== undefined) {
-      ``;
+    if (image) {
       let arrayImage = [];
-      for (var i = 0; i < image[0].uploadToken.length; i++) {
-        let path = jwt.verify(
-          image[0].uploadToken[i],
-          process.env.ACCESS_TOKEN_SECRET
-        );
+      let arr=image.split(',');
+      for (let i = 0; i < arr.length; i++) {  
+        let linkOrigin=arr[i].split("/");
+        let origin= linkOrigin[4] ;
+        console.log(origin)
+        await checkImageUpload(origin);
+        let metadata={
+          height : '',
+          width:  '',
+          extendsion: '.png'
+        };
         arrayImage.push({
-          caption: image[0].caption[i],
-          path: path,
+          link_origin : 'origin/'+origin,
+          link_thumbnail : `thumnail/${origin}`,
+          link_post : `post/${origin}`,
+          metadata: metadata
         });
+        await getImageResize(origin,thumnail);
+        await getImageResize(origin,imgpost);
+        for (let i = 0; i < arrayImage.length; i++) {
+          await Image.create({
+            link_origin : arrayImage[i].link_origin,
+            link_thumbnail : arrayImage[i].link_thumbnail,
+            link_post : arrayImage[i].link_post,
+            metadata:arrayImage[i].metadata,
+            post_id: post_id
+          });
+        }
       }
-      console.log(post_id);
-      for (var i = 0; i < arrayImage.length; i++) {
-        await Image.create({
-          caption: arrayImage[i]['caption'],
-          path: arrayImage[i]['path'],
-          post_id: post_id,
-        });
-      }
+    } 
       await Post.update(
         { description: description },
         {
@@ -581,7 +620,6 @@ exports.updatePost = async (post_id, description, image, user_id) => {
           },
         }
       );
-    }
   } catch (error) {
     throw error;
   }
@@ -597,24 +635,54 @@ exports.deletePost = async (post_id, user_id) => {
         id: post_id,
       },
     });
+    if (!isPostExist) {
+      let err = {
+        code: 'NOT_EXISTS',
+        message: "Post is not exists",
+      };
+      throw err;
+    }
     if (checkOwner.length === 0) {
       let err = {
         code: 'NOT_PERMISSON',
         message: "You don't have permission",
       };
       throw err;
-    } else {
-      await Post.destroy({
-        where: {
-          id: post_id,
-        },
+    } else {  
+      let listImg= await Image.findAll({
+        where:{
+          post_id:post_id
+        }
       });
+      for(let element =0;element<listImg.length; element++){
+        let key =listImg[element].dataValues.link_origin.split('/');
+        await deleteImgS3(key[1])
+      }
+      let listCmt=await Comment.findAll({
+        attributes: ['id'],
+        where:{
+          post_id:post_id
+        }
+      })
+      for(let i=0; i<listCmt.length;i++){
+        await React.destroy({
+          where:{
+            type : '1',
+            type_id:listCmt[i].dataValues.id
+          }
+        })
+      }
+      await React.destroy({
+        where:{
+          type : '0',
+          type_id: post_id
+        }
+      })
+      await Post.destroy({where: {id: post_id}});
+      await Comment.destroy({where:{post_id:post_id}})
+      await Image.destroy({ where:{post_id:post_id}})
       message = 'Deleted';
     }
-    if (!isPostExist) {
-      throw new Error('Post is not exist');
-    }
-
     return message;
   } catch (error) {
     throw error;
@@ -730,3 +798,60 @@ const checkReactExistence = async (user_id, type, type_id) => {
   }
 };
 
+const getImageResize =async (originalKey,img)=>{
+  let key=`${img.type}/${originalKey}`
+  s3.getObject({Bucket: process.env.BUCKET, Key: 'origin/'+originalKey}).promise()
+    .then(data => Sharp(data.Body)
+      .resize(img.width,img.height, {
+        withoutEnlargement: true,
+        fit: 'inside'
+        })
+      .toFormat('png')
+      .toBuffer()
+    )
+    .then(buffer => s3.putObject({
+        Body: buffer,
+        Bucket: process.env.BUCKET,
+        ContentType: 'image/png',
+        Key: key,
+      }).promise()
+    )
+    .then(() =>{ return `${URL}/${key}`
+    })
+}
+const deleteImgS3 =async(key)=>{
+  var deleteParam = {
+    Bucket: process.env.BUCKET,
+    Delete: {
+        Objects: [
+            {Key: 'origin/'+key},
+            {Key: 'thumbnail/'+key},
+            {Key: 'imgpost/'+key}
+        ]
+    }
+};    
+s3.deleteObjects(deleteParam, function(err, data) {
+    if (err){
+      let error = {
+        code: 'DELETE_FAIL',
+        message: 'Can not delete image',
+      };
+      throw error;
+    }
+});
+}
+
+function checkImageUpload(key) {
+  return new Promise((resolve, reject) => {
+   s3.headObject({ Bucket: process.env.BUCKET, Key: 'origin/'+key }, (err, metadata) => {
+    if (err) {
+      let error = {
+        code: 'NOT_FOUND',
+        message: 'Image is not uploaded',
+      };
+     return reject(error);
+    }
+    return resolve(metadata);
+   });
+  });
+ }

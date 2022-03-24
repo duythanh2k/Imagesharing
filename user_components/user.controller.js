@@ -12,7 +12,7 @@ exports.signUp = async function (req, res, next) {
       gender: req.body.gender,
       avatar: req.body.avatar,
     };
-    await userService.signUp(user);
+    await userService.signUp(user,req.body.re_enter_password);
     res.status(200).json({
       status: 'Success',
       code: null,

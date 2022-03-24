@@ -167,69 +167,47 @@ exports.likeComment = async (req, res) => {
     });
   }
 };
-exports.uploadLink = async (req, res, next) => {
-  try {
-    let numberImage = Number.parseInt(req.query.numberOfImage);
-    let result = await postService.uploadLink(numberImage);
-    res.status(200).json({
-      status: "Success",
-      code: null,
-      message: null,
-      data: result,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "Error",
-      code: error.code,
-      message: error.message,
-      data: null,
-    });
-  }
-};
 
-exports.uploadImage = async(req,res,next)=>{
-   try {   
-      const pictures =req.path;
-      let result = await postService.uploadImage(pictures);
-      res.status(200).json({
-        status: "Success",
-        code: null,
-        message: null,
-        data: result,
-      });
-   } catch (error) {
-    res.status(400).json({
-      status: "Error",
-      code: error.code,
-      message: error.message,
-      data: null,
-    });
-   }
-}
-exports.uploadPost = async (req, res, next) => {
+
+exports.uploadLink = async(req, res, next)=>{
   try {
-    const description = req.body.description;
-    const image = [];
-    image.push({
-      caption: req.body.caption,
-      path: req.body.token,
-    });
-    console.log(image)
-    let result = await postService.uploadPost(description, image, req.idUser);
-    res.status(200).json({
-      status: "Success",
-      code: null,
-      message: null,
-      data: result,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "Error",
-      code: error.code,
-      message: error.message,
-      data: null,
-    });
-  }
+  let numberImage = Number.parseInt(req.query.numberOfImage);
+  const result = await postService.generateUploadUrl(numberImage);
+  res.status(200).json({
+    status: "Success",
+    code: null,
+    message: null,
+    data: result,
+  });
+} catch (error) {
+  res.status(400).json({
+    status: "Error",
+    code: error.code,
+    message: error.message,
+    data: null,
+  });
+}
+}
+
+exports.uploadPost = async (req, res, next) => {
+try {
+  const description = req.body.description;
+  const image = req.body.images_arr;
+  let result = await postService.uploadPost(description, image, req.idUser);
+  res.status(200).json({
+    status: "Success",
+    code: null,
+    message: null,
+    data: result,
+  });
+} catch (error) {
+  res.status(400).json({
+    status: "Error",
+    code: error.code,
+    message: error.message,
+    data: null,
+  });
+}
 };
 
 exports.likePost = async (req, res, next) => {
@@ -327,23 +305,18 @@ exports.updatePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
     const description = req.body.description;
-    const image = [];
-    image.push({
-      caption: req.body.caption,
-      uploadToken: req.body.token,
-    });
+    const image = req.body.images_arr;
     let result = await postService.updatePost(
       postId,
       description,
       image,
-      req.idUser,
-      req.path
+      req.idUser
     );
     res.status(200).json({
       status: "success",
       code: null,
       message: null,
-      data: result,
+      data: null,
     });
   } catch (error) {
     res.status(400).json({
