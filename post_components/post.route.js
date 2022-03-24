@@ -3,7 +3,6 @@ const router = express.Router();
 
 const authenMiddleware = require('../Middlewares/authen.middleware');
 const postController = require('./post.controller');
-const upload = require('../Middlewares/image_upload.middleware');
 
 router.get('/images', authenMiddleware.isAuth, postController.getAllImageUser);
 router.put('/images/:id', authenMiddleware.isAuth, postController.updateCapImage);
