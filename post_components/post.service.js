@@ -132,7 +132,7 @@ exports.deleteImage = async (idUser, idImage) => {
 };
 
 // Get all comments of a post sort by timestamp
-exports.getAllCmtDesc = async (post_id, requests) => {
+exports.getAllCmt = async (post_id, requests) => {
   try {
     // query for sort comment by descend timestamp
     if (isEmpty(requests.sort_by)) {
@@ -457,55 +457,54 @@ exports.likePost = async (user_id, post_id) => {
   }
 };
 
-exports.commentPost = async (cmt, postId, userId) => {
-  let isPostExist = await checkPostExistence(postId);
-  if (!isPostExist) {
-    throw new Error('Post is not exist');
-  }
-  if (isEmpty(cmt) || isEmpty(postId)) {
-    throw new Error('Empty input');
-  } else {
-    const data = {
-      text: cmt,
-      created_at: Date.now(),
-      user_id: userId,
-      post_id: postId,
-    };
-    await Comment.create(data);
-  }
-};
-exports.replyComment = async (data) => {
-  let isPostExist = await checkPostExistence(data.post_id);
-  if (!isPostExist) {
-    let err = {
-      code: 'NOT_EXISTS',
-      message: "Post is not exists",
-    };
-    throw err;
-  }
-  let isParentCMTExist=await checkCommentExistence(data.parent_id);
-  if(!isParentCMTExist){
-    let err = {
-      code: 'NOT_EXISTS',
-      message: "Comment is not exists",
-    };
-    throw err;
-  }
-  if (isEmpty(data.cmt)) {
-    let err = {
-      code: 'INVALID_INPUT',
-      message: "Input data is invalid",
-    };
-    throw err;
-  } else {
+exports.createComment = async (data) => {
+  try {
+    let isPostExist = await checkPostExistence(data.post_id);
+    let isParentCMTExist = await checkCommentExistence(data.parent_comment_id);
+    let isCommentOfPost = await checkCommentExistsInPost(data.parent_comment_id, data.post_id);
+
+    if (!isPostExist) {
+      let err = {
+        code: 'NOT_EXISTS',
+        message: "Post is not exists",
+      };
+      throw err;
+    }
+    if (!data.parent_comment_id) {
+      data.parent_comment_id = null;
+    } else {
+      if (!isParentCMTExist){
+        let err = {
+          code: 'NOT_EXISTS',
+          message: "Comment is not exists",
+        };
+        throw err;
+      }
+      if (!isCommentOfPost) {
+        let err = {
+          code: 'NOT_FOUND',
+          message: 'Comment does not exists in this post!',
+        };
+        throw err;
+      }
+    }
+    if (isEmpty(data.text)) {
+      let err = {
+        code: 'INVALID_INPUT',
+        message: "Input data is invalid",
+      };
+      throw err;
+    }
     const newData = {
-      text: data.cmt,
+      text: data.text,
       created_at: Date.now(),
-      parent_cmt_id: data.parent_id,
+      parent_cmt_id: data.parent_comment_id,
       user_id: data.user_id,
       post_id: data.post_id,
     };
     await Comment.create(newData);
+  } catch (err) {
+    throw err;
   }
 };
 
