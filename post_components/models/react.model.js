@@ -1,6 +1,6 @@
 const db = require('../../util/db');
 const User = require('../../user_components/models/user.model');
-const { Sequelize,DataTypes,Deferrable } = require('sequelize');
+const { Sequelize, DataTypes,Deferrable } = require('sequelize');
 
 const React = db.define('Reacts',{
     user_id:{

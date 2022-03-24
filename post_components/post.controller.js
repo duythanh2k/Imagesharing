@@ -67,11 +67,11 @@ exports.deleteImage = async (req, res, next) => {
   }
 };
 
-exports.getAllCmtDesc = async (req, res) => {
+exports.getAllCmt = async (req, res) => {
   try {
     let postId = req.params.id;
     let requests = req.query;
-    let results = await postService.getAllCmtDesc(postId, requests);
+    let results = await postService.getAllCmt(postId, requests);
     return res.json({
       status: "Success",
       code: null,
@@ -231,36 +231,15 @@ exports.likePost = async (req, res, next) => {
   }
 };
 
-exports.commentPost = async (req, res) => {
-  try {
-    const postId = req.params.id;
-    const cmt = req.body.comment;
-     await postService.commentPost(cmt, postId, req.idUser);
-    res.status(200).json({
-      status: "success",
-      code: null,
-      message: null,
-      data: null,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "Erorr",
-      code: error.code,
-      message: error.message,
-      data: null,
-    });
+exports.createComment = async (req, res) => {
+  let data = {
+    text: req.body.text,
+    parent_comment_id: req.params.comment_id,
+    user_id: req.idUser,
+    post_id: req.params.id
   }
-};
-
-exports.replyComment = async (req, res) => {
   try {
-    let data={
-      cmt: req.body.comment,
-      parent_id: req.params.idcmt,
-      user_id: req.idUser,
-      post_id: req.params.id
-    }
-     await postService.replyComment(data);
+    await postService.createComment(data);
     res.status(200).json({
       status: "success",
       code: null,

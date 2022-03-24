@@ -341,13 +341,13 @@ paths:
           description: The post id     
       responses:
         '200':
-          description: success;    
-  /posts/{id}/comment:  
+          description: success;
+  /posts/{id}/comments:  
     post:
       tags:
         - Post service
-      summary: Comment post
-      description: User comment into posts
+      summary: Comment
+      description: create a new comment for a post
       consumes:
         - application/json
       produces:
@@ -367,17 +367,17 @@ paths:
             schema:
               type: object
               properties:
-                comment:
+                text:
                   type: string
       responses:
         '200':
-          description: Success
-  /posts/{id}/comments/{idcmt}:  
+          description: Success 
+  /posts/{id}/comments/{comment_id}:  
     post:
       tags:
         - Post service
-      summary: Reply comment
-      description: User reply a comment of an other user
+      summary: Reply
+      description: reply a comment
       consumes:
         - application/json
       produces:
@@ -392,7 +392,7 @@ paths:
             type: integer
           description: The post id
         - in: path
-          name: idcmt   
+          name: comment_id   
           required: true
           schema:
             type: integer
@@ -403,7 +403,7 @@ paths:
             schema:
               type: object
               properties:
-                comment:
+                text:
                   type: string
       responses:
         '200':
