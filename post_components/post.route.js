@@ -14,7 +14,7 @@ router.put("/:id/comments/:comment_id", authenMiddleware.isAuth, postController.
 router.delete("/:id/comments/:comment_id", authenMiddleware.isAuth, postController.deleteComment);
 router.post("/:id/comments/:comment_id/like", authenMiddleware.isAuth, postController.likeComment);
 
-router.get('/getUrlUpload', authenMiddleware.isAuth ,postController.uploadLink);
+
 router.post('/', authenMiddleware.isAuth , postController.uploadPost);
 router.post('/:id/like', authenMiddleware.isAuth, postController.likePost );
 router.put('/:id', authenMiddleware.isAuth, postController.updatePost);

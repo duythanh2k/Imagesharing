@@ -16,4 +16,6 @@ router.get('/users', authenMiddleware.isAuth, userController.searchUsers);
 //search images
 router.get('/users/images',authenMiddleware.isAuth,userController.getAllImage);
 
+router.get('/notification',authenMiddleware.isAuth,userController.getNotification);
+router.get('/getUrlUpload', authenMiddleware.isAuth ,userController.uploadLink);
 module.exports = router;

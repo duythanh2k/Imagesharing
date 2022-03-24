@@ -199,3 +199,41 @@ exports.getAllImage = async (req, res) => {
     });
   }
 };
+
+exports.uploadLink = async(req, res, next)=>{
+  try {
+  let numberImage = Number.parseInt(req.query.numberOfImage);
+  const result = await userService.generateUploadUrl(numberImage);
+  res.status(200).json({
+    status: "Success",
+    code: null,
+    message: null,
+    data: result,
+  });
+  } catch (error) {
+    res.status(400).json({
+      status: "Error",
+      code: error.code,
+      message: error.message,
+      data: null,
+    });
+  }
+}
+exports.getNotification =async (req,res,next)=>{
+  try {
+    const result = await userService.getNotification(req.idUser);
+    res.status(200).json({
+      status: "Success",
+      code: null,
+      message: null,
+      data: result,
+    });
+    } catch (error) {
+      res.status(400).json({
+        status: "Error",
+        code: error.code,
+        message: error.message,
+        data: null,
+      });
+    }
+}

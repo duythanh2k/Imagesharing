@@ -1,5 +1,6 @@
 const User = require('./models/user.model');
 const Follower = require('./models/follower.model');
+const Notification=require('./models/notification');
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
@@ -588,7 +589,34 @@ const searchQuery = async (requests) => {
     ],
   };
 };
-
+exports.generateUploadUrl = async (numberImage) => {
+  let imageInfor = [];
+  for (var i = 0; i < numberImage; i++) {
+    const imageName =
+      "origin/"+Date.now() + "-" + Math.round(Math.random() * 1e9) + ".png";
+    const params = {
+      Bucket: "savvycom-insta-app",
+      Key: imageName,
+    };
+    const uploadURL = await s3.getSignedUrlPromise("putObject", params);
+    const urlImage = uploadURL.split("?")[0];
+    imageInfor.push({
+      uploadURL : uploadURL,
+      urlImage : urlImage
+    })
+  };
+  return imageInfor;
+};
+//get notification 
+exports.getNotification = async (userId)=>{
+  let result= await Notification.findAll({
+    where:{
+      recipient:userId
+    },
+    order: [['created_at','DESC']]
+  });
+  return result;
+}
 function checkImageUpload(key) {
   return new Promise((resolve, reject) => {
    s3.headObject({ Bucket: process.env.BUCKET, Key: 'origin/'+key }, (err, metadata) => {

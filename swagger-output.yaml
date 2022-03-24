@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:3000
 paths:
-  /posts/getUrlUpload:  
+  /getUrlUpload:  
     get:
       tags:
         - Get url upload
@@ -706,6 +706,35 @@ paths:
       responses:
         '200':
           description: Liked/Unliked
+  /notification:
+    get:
+      tags:
+        - Notification
+      summary: Get notification
+      description: List all the notification of curent user 
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          type: integer
+          format: int32
+          minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 50
+      responses:
+        '200':
+          description: Success
 components:
   schemas:
     User:

@@ -328,25 +328,6 @@ exports.likeComment = async (user_id, post_id, comment_id) => {
 };
 
 
-exports.generateUploadUrl = async (numberImage) => {
-  let imageInfor = [];
-  for (var i = 0; i < numberImage; i++) {
-    const imageName =
-      "origin/"+Date.now() + "-" + Math.round(Math.random() * 1e9) + ".png";
-    const params = {
-      Bucket: "savvycom-insta-app",
-      Key: imageName,
-    };
-    const uploadURL = await s3.getSignedUrlPromise("putObject", params);
-    const urlImage = uploadURL.split("?")[0];
-    imageInfor.push({
-      uploadURL : uploadURL,
-      urlImage : urlImage
-    })
-  };
-  return imageInfor;
-};
-
 exports.uploadPost = async (description, image, id) => {
   try {
     if (typeof description !== "string")
