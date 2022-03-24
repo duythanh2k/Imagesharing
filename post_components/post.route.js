@@ -3,7 +3,6 @@ const router = express.Router();
 
 const authenMiddleware = require('../Middlewares/authen.middleware');
 const postController = require('./post.controller');
-const upload = require('../Middlewares/image_upload.middleware');
 
 router.get('/images', authenMiddleware.isAuth, postController.getAllImageUser);
 router.put('/images/:id', authenMiddleware.isAuth, postController.updateCapImage);
@@ -16,7 +15,6 @@ router.post("/:id/comments/:comment_id/like", authenMiddleware.isAuth, postContr
 
 router.get('/getUrlUpload', authenMiddleware.isAuth ,postController.uploadLink);
 router.post('/', authenMiddleware.isAuth , postController.uploadPost);
-router.post('/uploadImage',authenMiddleware.isAuth,upload,postController.uploadImage);
 router.post('/:id/like', authenMiddleware.isAuth, postController.likePost );
 router.post('/:id/comment', authenMiddleware.isAuth , postController.commentPost);
 router.post('/:id/comments/:idcmt', authenMiddleware.isAuth , postController.replyComment);

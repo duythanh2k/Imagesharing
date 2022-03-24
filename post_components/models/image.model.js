@@ -9,9 +9,6 @@ const Image = db.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
     },
-    caption: {
-      type: DataTypes.TEXT,
-    },
     link_origin: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -25,7 +22,8 @@ const Image = db.define(
       allowNull: true,
     },
     metadata: {
-      type: DataTypes.TEXT,
+      type: DataTypes.JSON,
+      allowNull:true
     },
     post_id: {
       type: DataTypes.INTEGER,

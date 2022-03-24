@@ -3,7 +3,7 @@ const User = require("./user.model");
 const { Sequelize, DataTypes, Deferrable } = require("sequelize");
 
 const follower = db.define(
-  "followers",
+  "Followers",
   {
     follower_id: {
       type: DataTypes.INTEGER,

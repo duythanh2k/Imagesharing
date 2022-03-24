@@ -6,9 +6,16 @@ const bcrypt = require('bcryptjs');
 const { QueryTypes, Op } = require('sequelize');
 const db = require('../util/db');
 const date = require('date-and-time');
+const aws =require('aws-sdk');
+const s3 = new aws.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: "ap-southeast-1",
+  signatureVersion: "v4",
+});
 
 //Đăng nhập
-exports.signUp = async function (user) {
+exports.signUp = async function (user,re_enter_password) {
   //Kiểm tra dữ liệu nhập vào có trống hay không
   if (
     isEmpty(user.email) ||
@@ -59,11 +66,17 @@ exports.signUp = async function (user) {
   const regex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   //Kiểm tra định dạng password
-  if (regex.test(user.password) == false) {
-    console.log(regex.test(user.password));
+  if (regex.test(user.password) == false ) {
     let err = {
       code: 'INCORRECT_DATATYPE',
       message: 'Password is incorrect datatype',
+    };
+    throw err;
+  }
+  if(user.password!=re_enter_password){
+    let err = {
+      code: 'NOT_MATCH_PASSWORD',
+      message: 'Passwords do not match',
     };
     throw err;
   }
@@ -75,13 +88,24 @@ exports.signUp = async function (user) {
     };
     throw err;
   }
-  console.log(user.gender);
   if (user.gender != 'male' && user.gender != 'female') {
     let err = {
       code: 'INCORRECT_DATA_INPUT',
       message: 'Gender is incorrect data',
     };
     throw err;
+  }
+  if(isEmpty(user.avatar)){
+    if(user.gender=='male')
+    {
+      user.avatar='origin/avata_male_default.png'
+    }else{
+      user.avatar='origin/avata_female_default.png'
+    }
+    
+  }else{
+    let key = user.avatar.split('/');
+    await checkImageUpload(key[4]);
   }
   const hashPass = bcrypt.hashSync(user.password, 10);
   user.password = hashPass;
@@ -184,6 +208,25 @@ exports.updateProfile = async (idUser, user) => {
         message: 'Last name is incorrect datatype',
       };
       throw err;
+    }
+    let oldImage =await User.findOne({
+      attributes: ['avatar'],
+      where: {
+        id : idUser,
+      }
+    })
+    let old = oldImage.dataValues.avatar.split('/');
+    if(!isEmpty(user.avatar)){    
+      let key = user.avatar.split('/')
+      await checkImageUpload(key[4]);
+      user.avatar= 'origin/'+key[4];
+      if(old[1] != "avatar_male_default.png" &&
+      old[1] != "avatar_female_default.png" &&
+      old[1] != key[4])
+      {
+        console.log(old[1])
+        await deleteImgS3(old[1]);
+      }
     }
     await User.update(user, {
       where: {
@@ -545,3 +588,31 @@ const searchQuery = async (requests) => {
     ],
   };
 };
+
+function checkImageUpload(key) {
+  return new Promise((resolve, reject) => {
+   s3.headObject({ Bucket: process.env.BUCKET, Key: 'origin/'+key }, (err, metadata) => {
+    if (err) {
+      let error = {
+        code: 'NOT_FOUND',
+        message: 'Image is not uploaded',
+      };
+     return reject(error);
+    }
+    return resolve(metadata);
+   });
+  });
+ }
+const deleteImgS3 =async(key)=>{
+  var params = {  Bucket: process.env.BUCKET,
+     Key: 'origin/'+key };
+  s3.deleteObject(params, function(err, data) {
+    if (err) {
+      let err = {
+        code: 'DELETE_FAIL',
+        message: 'Can not delete image',
+      };
+      throw err;
+    }  
+  });
+}

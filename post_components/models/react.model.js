@@ -2,7 +2,7 @@ const db = require('../../util/db');
 const User = require('../../user_components/models/user.model');
 const { Sequelize,DataTypes,Deferrable } = require('sequelize');
 
-const PostReact = db.define('PostReacts',{
+const React = db.define('Reacts',{
     user_id:{
         type:DataTypes.INTEGER,
         primaryKey:true,
@@ -34,5 +34,5 @@ const PostReact = db.define('PostReacts',{
     underscored: true
 });
 
-// PostReact.sync({ force: false });
-module.exports = PostReact;
+// React.sync({ force: false });
+module.exports = React;

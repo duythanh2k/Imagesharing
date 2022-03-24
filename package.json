@@ -10,6 +10,7 @@
   "author": "fc2_team_no2",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1097.0",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.2",
     "date-and-time": "^2.3.0",
@@ -22,6 +23,7 @@
     "mysql2": "^2.3.3",
     "rand-token": "^1.0.1",
     "sequelize": "^6.17.0",
+    "sharp": "^0.30.3",
     "swagger-autogen": "^2.19.0",
     "swagger-ui-express": "^4.3.0",
     "yamljs": "^0.3.0"
