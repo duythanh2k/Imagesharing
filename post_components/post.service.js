@@ -2,7 +2,6 @@ const Post = require('./models/post.model');
 const Comment = require('./models/comment.model');
 const React = require('./models/react.model');
 const Image = require('./models/image.model');
-const jwt = require('jsonwebtoken');
 const Sharp=require('sharp');
 const { Sequelize, QueryTypes, Op } = require('sequelize');
 const aws =require('aws-sdk');
@@ -51,51 +50,6 @@ exports.getAllImageUser = async (idUser, requests) => {
   }
 };
 
-//Cập nhật caption mới cho image
-exports.updateCapImage = async (idImage, idUser, newCaption) => {
-  try {
-    //Kiểm tra image có tồn tại hay không
-    let check = await Image.findOne({ where: { id: idImage } });
-    if (!check) {
-      let err = {
-        code: 'NOT_FOUND',
-        message: 'Can not found your images',
-      };
-      throw err;
-    }
-    // Kiểm tra caption có undefined hay không
-    if (newCaption === undefined) {
-      let err = {
-        code: 'INVALID_INPUT',
-        message: 'Input data is invalid',
-      };
-      throw err;
-    }
-    let checkOwner = await Image.findAll({
-      where: { id: idImage },
-      include: [{ model: Post, required: true, where: { id: idUser } }],
-    });
-    //Kiểm tra ảnh có phải của tk đang login
-    if (checkOwner.length === 0) {
-      let err = {
-        code: 'NOT_PERMISSON',
-        message: "You don't have permission",
-      };
-      throw err;
-    }
-    await Image.update(
-      {
-        caption: newCaption,
-      },
-      {
-        where: { id: idImage },
-      }
-    );
-    return;
-  } catch (err) {
-    throw err;
-  }
-};
 
 //Xóa image
 exports.deleteImage = async (idUser, idImage) => {
@@ -409,7 +363,7 @@ exports.uploadPost = async (description, image, id) => {
       let metadata={
         height : '',
         width:  '',
-        extendsion: '.png'
+        type: '.png'
       };
       arrayImage.push({
         link_origin : 'origin/'+origin,
@@ -534,32 +488,26 @@ exports.createComment = async (data) => {
   }
 };
 
-exports.listPost = async (user_id, sort, paging) => {
+exports.listPost = async (user_id,  paging) => {
   try {
-    let limit = paging["limit"];
-    let offset = paging["offset"];
-    if (isEmpty(limit) || isEmpty(offset) || isEmpty(sort)) {
-      limit = 2;
-      offset = 0;
+    if (isEmpty(paging.limit)) {
+      paging.limit = 2;
     }
-    let filter = [];
-    if (sort === "-created") {
-      filter.push(["created_at", "Desc"]);
+    if (isEmpty(paging.offset)) {
+      paging.offset = 0;
+    }
+    if (isEmpty(paging.sort_by)) {
+      paging.sort_by = 'created_at';
+    }
+    if (isEmpty(paging.order_by)) {
+      paging.order_by = 'DESC';
     }
       let posts = await Post.findAll({
-        where: {
-          user_id: user_id,
-        },
-        attributes: ["description", "created_at"],
-        order: filter,
-        include: [
-          { model: Image,  required: true },
-        ],
-        limit: limit,
-        offset: offset,
+        order: [[Sequelize.col(paging.sort_by), paging.order_by]],
+        limit: Number(paging.limit),
+        offset: Number(paging.offset),
       });
       return posts;
-    
   } catch (err) {
     throw err;
   }

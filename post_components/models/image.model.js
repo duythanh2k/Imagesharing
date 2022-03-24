@@ -11,7 +11,7 @@ const Image = db.define(
     },
     link_origin: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
     link_thumbnail: {
       type: DataTypes.STRING,
@@ -23,7 +23,7 @@ const Image = db.define(
     },
     metadata: {
       type: DataTypes.JSON,
-      allowNull:true
+      allowNull: false
     },
     post_id: {
       type: DataTypes.INTEGER,

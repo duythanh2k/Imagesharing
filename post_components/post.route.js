@@ -5,7 +5,6 @@ const authenMiddleware = require('../Middlewares/authen.middleware');
 const postController = require('./post.controller');
 
 router.get('/images', authenMiddleware.isAuth, postController.getAllImageUser);
-router.put('/images/:id', authenMiddleware.isAuth, postController.updateCapImage);
 router.delete('/images/:id', authenMiddleware.isAuth, postController.deleteImage);
 
 router.get("/:id/comments", authenMiddleware.isAuth, postController.getAllCmt);

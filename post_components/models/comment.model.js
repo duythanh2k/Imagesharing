@@ -24,6 +24,7 @@ const Comment = db.define(
     },
     count_react:{
       type: DataTypes.INTEGER,
+      allowNull:false,
       defaultValue: 0
     },
     user_id: {

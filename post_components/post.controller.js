@@ -22,28 +22,7 @@ exports.getAllImageUser = async (req, res, next) => {
   }
 };
 
-//Cập nhật caption của ảnh
-exports.updateCapImage = async (req, res, next) => {
-  try {
-    let idImage = req.params.id;
-    let newcapIamge = req.body.caption;
-    let idUser = req.idUser;
-    await postService.updateCapImage(idImage, idUser, newcapIamge);
-    return res.json({
-      status: "Success",
-      code: null,
-      message: null,
-      data: null,
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "Error",
-      code: err.code,
-      message: err.message,
-      data: null,
-    });
-  }
-};
+
 
 //Xóa ảnh
 exports.deleteImage = async (req, res, next) => {
@@ -258,12 +237,8 @@ exports.createComment = async (req, res) => {
 exports.listPost = async (req, res, next) => {
   try {
     const idUser = req.params.id;
-    const sort = req.query.sort;
-    const paging = {
-      limit: req.query.limit,
-      offset: req.query.offset,
-    };
-    let result = await postService.listPost(idUser, sort, paging);
+    const paging =req.query
+    let result = await postService.listPost(idUser, paging);
     res.status(200).json({
       status: "success",
       code: null,
