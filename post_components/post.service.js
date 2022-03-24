@@ -124,7 +124,6 @@ exports.getAllCmt = async (post_id, requests) => {
     }
     // find all comments of current post and sort comments by lateset timestamp
     let comment = await Comment.findAll({
-      attributes: ["id","text","created_at","parent_cmt_id","user_id","post_id"],
       where: {
         post_id,
       },
