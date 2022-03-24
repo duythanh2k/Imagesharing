@@ -492,6 +492,9 @@ exports.listPost = async (user_id,  paging) => {
       paging.order_by = 'DESC';
     }
       let posts = await Post.findAll({
+        where:{
+          user_id:user_id
+        },
         order: [[Sequelize.col(paging.sort_by), paging.order_by]],
         limit: Number(paging.limit),
         offset: Number(paging.offset),

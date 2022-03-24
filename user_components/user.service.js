@@ -190,25 +190,34 @@ exports.updateProfile = async (idUser, user) => {
     }
     //Kiểm tra dữ liệu nhập vào của first_name và last_name
     let nameCheck = /[0-9@$!%*?&]/;
-    if (
-      !isEmpty(user.first_name) &&
-      (nameCheck.test(user.first_name) || /^\s/.test(user.first_name))
-    ) {
+    if (!isEmpty(user.first_name) &&(nameCheck.test(user.first_name) || /^\s/.test(user.first_name))) {
       let err = {
         code: 'DATATYPE_ERROR',
         message: 'First name is incorrect datatype',
       };
       throw err;
     }
-    if (
-      !isEmpty(user.last_name) &&
-      (nameCheck.test(user.last_name) || /^\s/.test(user.last_name))
-    ) {
+    if (!isEmpty(user.last_name) &&(nameCheck.test(user.last_name) || /^\s/.test(user.last_name))) {
       let err = {
         code: 'DATATYPE_ERROR',
         message: 'Last name is incorrect datatype',
       };
       throw err;
+    }
+    if (user.gender != 'male' && user.gender != 'female') {
+      let err = {
+        code: 'INCORRECT_DATA_INPUT',
+        message: 'Gender is incorrect data',
+      };
+      throw err;
+    }
+    if(isEmpty(user.avatar)){
+      if(user.gender=='male')
+      {
+        user.avatar='origin/avata_male_default.png'
+      }else{
+        user.avatar='origin/avata_female_default.png'
+      }
     }
     let oldImage =await User.findOne({
       attributes: ['avatar'],
