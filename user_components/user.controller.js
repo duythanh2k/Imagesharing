@@ -162,6 +162,7 @@ exports.searchUsers = async (req, res) => {
 };
 
 //search image
+
 exports.getAllImage = async (req, res) => {
   try {
     let idUser = req.idUser;

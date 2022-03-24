@@ -1,9 +1,9 @@
-const db   = require("../../util/db");
-const Post = require("./post.model");
-const { Sequelize, DataTypes, Deferrable } = require("sequelize");
+const db = require('../../util/db');
+const Post = require('./post.model');
+const { Sequelize, DataTypes, Deferrable } = require('sequelize');
 
 const Image = db.define(
-  "Images",
+  'Images',
   {
     id: {
       type: DataTypes.INTEGER,
@@ -30,7 +30,7 @@ const Image = db.define(
       allowNull: false,
       references: {
         model: Post,
-        key: "id",
+        key: 'id',
         deferrable: Deferrable.INITIALLY_IMMEDIATE,
       },
     },
@@ -38,8 +38,8 @@ const Image = db.define(
   {
     index: [
       {
-        name: "index_image",
-        fields: ["post_id"],
+        name: 'index_image',
+        fields: ['post_id'],
       },
     ],
     timestamps: false,
@@ -47,7 +47,7 @@ const Image = db.define(
   }
 );
 
-Post.hasMany(Image, { foreignKey: "post_id" });
+Post.hasMany(Image, { foreignKey: 'post_id' });
 Image.belongsTo(Post);
 
 // Image.sync({ force: false });
