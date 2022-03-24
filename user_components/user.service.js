@@ -24,15 +24,15 @@ exports.signUp = async function (user) {
     throw err;
   }
   //Kiểm tra dữ liệu nhập vào của first_name và last_name
-  let nameCheck= /[0-9@$!%*?&]/
-  if(nameCheck.test(user.first_name) || /^\s/.test(user.first_name)){
+  let nameCheck = /[0-9@$!%*?&]/;
+  if (nameCheck.test(user.first_name) || /^\s/.test(user.first_name)) {
     let err = {
       code: 'DATATYPE_ERROR',
       message: 'First name is incorrect datatype',
     };
     throw err;
   }
-  if(nameCheck.test(user.last_name)|| /^\s/.test(user.last_name)){
+  if (nameCheck.test(user.last_name) || /^\s/.test(user.last_name)) {
     let err = {
       code: 'DATATYPE_ERROR',
       message: 'Last name is incorrect datatype',
@@ -164,15 +164,21 @@ exports.updateProfile = async (idUser, user) => {
       throw err;
     }
     //Kiểm tra dữ liệu nhập vào của first_name và last_name
-    let nameCheck= /[0-9@$!%*?&]/
-    if(!isEmpty(user.first_name) && (nameCheck.test(user.first_name) || /^\s/.test(user.first_name))){
+    let nameCheck = /[0-9@$!%*?&]/;
+    if (
+      !isEmpty(user.first_name) &&
+      (nameCheck.test(user.first_name) || /^\s/.test(user.first_name))
+    ) {
       let err = {
         code: 'DATATYPE_ERROR',
         message: 'First name is incorrect datatype',
       };
       throw err;
     }
-    if(!isEmpty(user.last_name) &&(nameCheck.test(user.last_name)|| /^\s/.test(user.last_name))){
+    if (
+      !isEmpty(user.last_name) &&
+      (nameCheck.test(user.last_name) || /^\s/.test(user.last_name))
+    ) {
       let err = {
         code: 'DATATYPE_ERROR',
         message: 'Last name is incorrect datatype',
@@ -308,7 +314,7 @@ exports.searchUsers = async (requests) => {
       condition = await searchQuery(requests.search);
     }
     users = User.findAll({
-      attributes: ["id","first_name","last_name","dob","gender","avatar"],
+      attributes: ['id', 'first_name', 'last_name', 'dob', 'gender', 'avatar'],
       where: condition,
       offset: Number(requests.offset),
       limit: Number(requests.limit),
@@ -388,10 +394,10 @@ exports.getAllImage = async (
     // search images by caption or description or email or userPost
     var searchWhereClause = '';
     if (search) {
-      searchWhereClause = ` AND (images.caption like '%${search}%' 
-      or posts.description like '%${search}%'
-      or users.email like '%${search}%'
-      or CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%')`;
+      searchWhereClause = ` AND ( posts.description LIKE '%${search}%'
+      OR users.email LIKE '%${search}%'
+      OR users.first_name LIKE '%${search}%'
+      OR users.last_name LIKE '%${search}%')`;
     }
 
     // search images by date
@@ -420,8 +426,8 @@ exports.getAllImage = async (
 
     //query search
     const rows = await db.query(
-      `SELECT images.caption,  images.path, posts.description,posts.created_at, 
-      CONCAT(users.first_name, ' ', users.last_name) as userPost , users.email,users.id as userId
+      `SELECT images.id,images.link_origin,images.link_thumbnail,images.link_post, images.metadata, posts.description,posts.created_at,
+      users.first_name, users.last_name ,users.email,users.id as userId
       FROM \`images\`
         JOIN \`posts\`
           ON images.post_id = posts.id
@@ -443,6 +449,7 @@ exports.getAllImage = async (
     throw error;
   }
 };
+
 //check is number ?
 const isNumber = function (value) {
   try {
@@ -533,8 +540,8 @@ const searchQuery = async (requests) => {
         },
       },
       {
-        gender: requests
-      }
-    ]
+        gender: requests,
+      },
+    ],
   };
 };
