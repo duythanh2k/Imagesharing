@@ -333,48 +333,56 @@ exports.uploadPost = async (description, image, id) => {
     if (typeof description !== "string")
       throw new Error("ERROR_CODE.INVALID_INPUT");
     if (isEmpty(description)) throw new Error("ERROR_CODE.INVALID_INPUT");
-    let thumnail={type: 'thumbnail', width: 60 , height: 60}
-    let imgpost={type: 'imgpost', width:  1600, height: 900}
-    let arrayImage = [];
-    let arr=image.split(',');
-    for (let i = 0; i < arr.length; i++) {  
-      let linkOrigin=arr[i].split("/");
-      let origin= linkOrigin[4] ;
-      await checkImageUpload(origin);
-      let metadata={
-        height : '',
-        width:  '',
-        type: '.png'
-      };
-      arrayImage.push({
-        link_origin : 'origin/'+origin,
-        link_thumbnail : `thumnail/${origin}`,
-        link_post : `post/${origin}`,
-        metadata: metadata
-      });
-      await getImageResize(origin,thumnail);
-      await getImageResize(origin,imgpost);
-    }
+    let result;
     const dataPost = {
       description: description,
       created_at: Date.now(),
       user_id: id,
     };
     let post = await Post.create(dataPost);
-    let post_id = post.dataValues.id;
-    for (let i = 0; i < arrayImage.length; i++) {
-      await Image.create({
-        link_origin : arrayImage[i].link_origin,
-        link_thumbnail : arrayImage[i].link_thumbnail,
-        link_post : arrayImage[i].link_post,
-        metadata:arrayImage[i].metadata,
-        post_id: post_id
-      });
+    let thumnail={type: 'thumbnail', width: 60 , height: 60}
+    let imgpost={type: 'imgpost', width:  1600, height: 900}
+    let arrayImage = [];
+    if(image){
+      let arr=image.split(',');
+      for (let i = 0; i < arr.length; i++) {  
+        let linkOrigin=arr[i].split("/");
+        let origin= linkOrigin[4] ;
+        await checkImageUpload(origin);
+        let metadata={
+          height : '',
+          width:  '',
+          type: '.png'
+        };
+        arrayImage.push({
+          link_origin : 'origin/'+origin,
+          link_thumbnail : `thumnail/${origin}`,
+          link_post : `post/${origin}`,
+          metadata: metadata
+        });
+        await getImageResize(origin,thumnail);
+        await getImageResize(origin,imgpost);
+      }
+    
+      let post_id = post.dataValues.id;
+      for (let i = 0; i < arrayImage.length; i++) {
+        await Image.create({
+          link_origin : arrayImage[i].link_origin,
+          link_thumbnail : arrayImage[i].link_thumbnail,
+          link_post : arrayImage[i].link_post,
+          metadata:arrayImage[i].metadata,
+          post_id: post_id
+        });
+      }
+      result = {
+        description: description,
+        image: arrayImage,
+      };
+    }else{
+      result = {
+        description: description
+      };
     }
-    const result = {
-      description: description,
-      image: arrayImage,
-    };
     return result;
   } catch (error) {
     throw error;
