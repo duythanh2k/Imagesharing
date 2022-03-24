@@ -286,6 +286,19 @@ exports.deleteComment = async (user_id, post_id, comment_id) => {
         post_id,
       },
     });
+    // also delete all replies belong to this comment
+    await Comment.destroy({
+      where: {
+        parent_cmt_id: comment_id,
+      },
+    });
+    // also delete all likes belong to this comment
+    await React.destroy({
+      where: {
+        type: 1,
+        type_id: comment_id,
+      },
+    });
     return;
   } catch (err) {
     throw err;
