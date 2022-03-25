@@ -449,8 +449,7 @@ exports.getAllImage = async (
     if (search) {
       searchWhereClause = ` AND ( posts.description LIKE '%${search}%'
       OR users.email LIKE '%${search}%'
-      OR users.first_name LIKE '%${search}%'
-      OR users.last_name LIKE '%${search}%')`;
+      OR CONCAT(users.first_name, ' ', users.last_name) LIKE '%${search}%')`;
     }
 
     // search images by date
@@ -480,7 +479,7 @@ exports.getAllImage = async (
     //query search
     const rows = await db.query(
       `SELECT images.id,images.link_origin,images.link_thumbnail,images.link_post, images.metadata, posts.description,posts.created_at,
-      users.first_name, users.last_name ,users.email,users.id as userId
+      CONCAT(users.first_name, ' ', users.last_name) as userPost ,users.email,users.id as userId
       FROM \`images\`
         JOIN \`posts\`
           ON images.post_id = posts.id
